@@ -110,7 +110,7 @@
         const defaultServices = [
             { id: 1, name: "bKash Personal", type: "currency", unit_name: "BDT", buy_rate: 1, sell_rate: 1, reserve: 50000, min_limit: 50, max_limit: 25000, user_input_label: "Your bKash Number", payment_details: "01722051341", color: "bg-pink-600" },
             { id: 2, name: "Nagad Personal", type: "currency", unit_name: "BDT", buy_rate: 1, sell_rate: 1, reserve: 50000, min_limit: 50, max_limit: 25000, user_input_label: "Your Nagad Number", payment_details: "01722051341", color: "bg-orange-500" },
-            { id: 3, name: "Telegram Stars", type: "account", unit_name: "Stars", buy_rate: 2.20, sell_rate: 2.80, reserve: 10000, min_limit: 15, max_limit: 5000, user_input_label: "Your Telegram User ID/Link", payment_details: "@Admin_UID_Here", color: "bg-blue-500" }
+            { id: 3, name: "Telegram Stars", type: "account", unit_name: "Stars", buy_rate: 2.20, sell_rate: 2.80, reserve: 10000, min_limit: 15, max_limit: 5000, user_input_label: "Your Telegram User ID/Link", payment_details: "@starbuyerbd", color: "bg-blue-500" }
         ];
 
         const translations = {
@@ -206,7 +206,7 @@
             const t = translations[lang];
             const sendService = services.find(s => s.id === parseInt(sendId)) || services[0];
             const receiveService = services.find(s => s.id === parseInt(receiveId)) || services[0];
-            const adminWhatsApp = "8801722051341";
+            const adminWhatsApp = "#";
 
             // --- FUNCTIONS ---
             const addToast = (msg, type = 'success') => {
