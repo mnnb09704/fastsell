@@ -3,13 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fast Sell</title>
+    <title>Fast Sell - Trusted Exchange</title>
     
     <!-- Error Handling Styles -->
     <style>
         #error-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 9999; padding: 20px; color: red; font-family: monospace; border-top: 5px solid red; }
         .loading { display: flex; justify-content: center; align-items: center; height: 100vh; font-family: sans-serif; color: #666; }
-        /* Smooth Scrollbar */
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
@@ -18,46 +17,32 @@
     <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
     
-    <!-- Babel for JSX -->
+    <!-- Babel -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Lucide React Icons (Stable Version) -->
+    <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide-react@0.263.1/dist/umd/lucide-react.min.js"></script>
     
     <!-- Font -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 
-    <!-- Custom Tailwind Config -->
+    <!-- Tailwind Config -->
     <script>
         tailwind.config = {
             darkMode: 'class',
             theme: {
                 extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                    },
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
                     animation: {
                         'fade-in': 'fadeIn 0.5s ease-out',
-                        'fade-in-down': 'fadeInDown 0.5s ease-out',
                         'marquee': 'marquee 25s linear infinite',
-                        'bounce-slow': 'bounce 3s infinite',
                     },
                     keyframes: {
-                        fadeIn: {
-                            '0%': { opacity: '0' },
-                            '100%': { opacity: '1' },
-                        },
-                        fadeInDown: {
-                            '0%': { opacity: '0', transform: 'translateY(-20px)' },
-                            '100%': { opacity: '1', transform: 'translateY(0)' },
-                        },
-                        marquee: {
-                            '0%': { transform: 'translateX(100%)' },
-                            '100%': { transform: 'translateX(-100%)' },
-                        }
+                        fadeIn: { '0%': { opacity: '0', transform: 'translateY(10px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
+                        marquee: { '0%': { transform: 'translateX(100%)' }, '100%': { transform: 'translateX(-100%)' } }
                     }
                 }
             }
@@ -66,42 +51,30 @@
 </head>
 <body class="bg-slate-50 text-slate-800 transition-colors duration-300">
     
-    <!-- Error Overlay -->
     <div id="error-overlay">
         <h2 style="font-size: 20px; font-weight: bold; margin-bottom: 10px;">System Error</h2>
-        <p>Something went wrong. Please refresh the page.</p>
-        <pre id="error-msg" style="background: #f0f0f0; padding: 15px; border-radius: 8px; overflow: auto; margin-top: 15px; font-size: 12px;"></pre>
+        <pre id="error-msg" style="background: #f0f0f0; padding: 15px; border-radius: 8px; overflow: auto; font-size: 12px;"></pre>
     </div>
 
-    <!-- Root Element -->
-    <div id="root">
-        <div class="loading">Loading System...</div>
-    </div>
+    <div id="root"><div class="loading">Loading Fast Sell...</div></div>
 
-    <!-- Error Handler Script -->
     <script>
         window.onerror = function(message, source, lineno, colno, error) {
             document.getElementById('error-overlay').style.display = 'block';
-            document.getElementById('error-msg').innerText = "Msg: " + message + "\nLine: " + lineno;
+            document.getElementById('error-msg').innerText = "Error: " + message + "\nLine: " + lineno;
         };
     </script>
 
     <script type="text/babel">
         const { useState, useEffect } = React;
-        
-        // --- SAFE ICON RETRIEVAL ---
         const Icons = window.lucideReact || {};
-        const getIcon = (name) => {
-            const IconComponent = Icons[name];
-            return IconComponent ? IconComponent : () => <span className="text-xs text-red-500">?</span>;
-        };
+        const getIcon = (name) => Icons[name] || (() => <span>?</span>);
 
-        // Icons mapping
+        // Icons
         const ArrowRightLeft = getIcon('ArrowRightLeft');
         const Settings = getIcon('Settings');
         const User = getIcon('User');
         const Package = getIcon('Package');
-        const Plus = getIcon('Plus');
         const CheckCircle = getIcon('CheckCircle');
         const Clock = getIcon('Clock');
         const Trash2 = getIcon('Trash2');
@@ -109,147 +82,127 @@
         const LogOut = getIcon('LogOut');
         const Bell = getIcon('Bell');
         const ShieldAlert = getIcon('ShieldAlert');
-        const Zap = getIcon('Zap');
-        const Moon = getIcon('Moon');
         const Sun = getIcon('Sun');
+        const Moon = getIcon('Moon');
         const MessageCircle = getIcon('MessageCircle');
         const LayoutDashboard = getIcon('LayoutDashboard');
         const List = getIcon('List');
         const Sliders = getIcon('Sliders');
-        const Search = getIcon('Search');
         const X = getIcon('X');
         const Menu = getIcon('Menu');
-        const LogIn = getIcon('LogIn');
-        const AlertTriangle = getIcon('AlertTriangle');
-        const Check = getIcon('Check');
         const ArrowRight = getIcon('ArrowRight');
         const Wallet = getIcon('Wallet');
         const FileText = getIcon('FileText');
         const Phone = getIcon('Phone');
+        const Plus = getIcon('Plus');
+        const Star = getIcon('Star');
 
-        // --- DATA & TRANSLATIONS ---
+        // --- CLEAN INITIAL DATA ---
+        // এই ডাটাগুলো ডিফল্ট থাকবে, কিন্তু লোকাল স্টোরেজে সেভ হলে অ্যাডমিন প্যানেলের ডাটা লোড হবে
+        const defaultServices = [
+            { id: 1, name: "bKash Personal", type: "currency", unit_name: "BDT", buy_rate: 1, sell_rate: 1, reserve: 50000, min_limit: 50, max_limit: 25000, user_input_label: "Your bKash Number", payment_details: "01722051341 (Personal)", color: "bg-pink-600" },
+            { id: 2, name: "Nagad Personal", type: "currency", unit_name: "BDT", buy_rate: 1, sell_rate: 1, reserve: 50000, min_limit: 50, max_limit: 25000, user_input_label: "Your Nagad Number", payment_details: "01722051341 (Personal)", color: "bg-orange-500" },
+            { id: 3, name: "Telegram Stars", type: "account", unit_name: "Stars", buy_rate: 2.20, sell_rate: 2.80, reserve: 10000, min_limit: 15, max_limit: 5000, user_input_label: "Telegram Username", payment_details: "Contact Admin for User", color: "bg-blue-500" }
+        ];
+
         const translations = {
             en: {
-                nav_home: "Home",
-                nav_track: "Track Order",
-                nav_admin: "Admin Panel",
-                hero_title: "Trusted Exchange",
-                hero_subtitle: "Safe, Fast & Automated - 24/7 Support",
-                send: "You Send",
-                receive: "You Receive",
-                reserve: "Reserve",
-                exchange_btn: "Proceed to Exchange",
-                confirm_btn: "Confirm Payment",
-                rate_title: "Today's Rates",
-                login_title: "Admin Access",
-                dashboard_title: "Order History",
-                admin_dash: "Dashboard",
-                admin_orders: "Orders",
-                admin_methods: "Methods",
-                admin_settings: "Settings",
-                step1: "Calculator",
-                step2: "Transfer",
-                step3: "Done",
-                pay_instruction: "Please make payment to the details below:",
-                product_instruction: "Please provide the product details/credentials below:",
-                trx_label: "Enter TrxID / Sender Number",
-                product_label: "Enter Email:Pass or Product Data",
-                binance_warning: "Minimum 1000 BDT required for Binance/USDT withdrawals."
+                nav_home: "Home", nav_track: "Track Order", nav_admin: "Admin",
+                hero_title: "Fast Sell Exchange", hero_subtitle: "Instant Telegram Stars & Currency Exchange",
+                send: "You Send", receive: "You Receive", reserve: "Reserve",
+                exchange_btn: "Exchange Now", confirm_btn: "Confirm Order",
+                rate_title: "Today's Rates", login_title: "Admin Login", dashboard_title: "Order History",
+                admin_dash: "Dashboard", admin_orders: "Orders", admin_methods: "Methods", admin_settings: "Settings",
+                step1: "Calculator", step2: "Payment", step3: "Done",
+                pay_instruction: "Please send money to:", product_instruction: "Provide your account details:",
+                trx_label: "TrxID / Number", product_label: "Details / Username"
             },
             bn: {
-                nav_home: "হোম",
-                nav_track: "অর্ডার ট্র্যাক",
-                nav_admin: "এডমিন প্যানেল",
-                hero_title: "বিশ্বস্ত এক্সচেঞ্জ",
-                hero_subtitle: "নিরাপদ এবং অটোমেটেড - ২৪/৭ সাপোর্ট",
-                send: "আপনি পাঠাবেন",
-                receive: "আপনি পাবেন",
-                reserve: "রিজার্ভ",
-                exchange_btn: "পরবর্তী ধাপ",
-                confirm_btn: "অর্ডার কনফার্ম করুন",
-                rate_title: "আজকের রেট",
-                login_title: "এডমিন এক্সেস",
-                dashboard_title: "অর্ডার হিস্টোরি",
-                admin_dash: "ড্যাশবোর্ড",
-                admin_orders: "অর্ডার",
-                admin_methods: "মেথড",
-                admin_settings: "সেটিংস",
-                step1: "হিসাব",
-                step2: "ট্রান্সফার",
-                step3: "সম্পন্ন",
-                pay_instruction: "নিচের নাম্বারে টাকা পাঠিয়ে তথ্য দিন:",
-                product_instruction: "নিচে প্রোডাক্ট ডিটেইলস বা একাউন্ট তথ্য দিন:",
-                trx_label: "TrxID বা সেন্ডার নাম্বার দিন",
-                product_label: "এখানে Email:Pass বা ডাটা দিন",
-                binance_warning: "Binance/USDT তে নিতে হলে মিনিমাম ১০০০ টাকার অর্ডার হতে হবে।"
+                nav_home: "হোম", nav_track: "অর্ডার ট্র্যাক", nav_admin: "এডমিন",
+                hero_title: "ফাস্ট সেল এক্সচেঞ্জ", hero_subtitle: "দ্রুত টেলিগ্রাম স্টার এবং কারেন্সি এক্সচেঞ্জ",
+                send: "আপনি পাঠাবেন", receive: "আপনি পাবেন", reserve: "মজুদ",
+                exchange_btn: "এক্সচেঞ্জ করুন", confirm_btn: "অর্ডার কনফার্ম করুন",
+                rate_title: "আজকের রেট", login_title: "এডমিন লগইন", dashboard_title: "অর্ডার ইতিহাস",
+                admin_dash: "ড্যাশবোর্ড", admin_orders: "অর্ডার", admin_methods: "মেথড", admin_settings: "সেটিংস",
+                step1: "হিসাব", step2: "পেমেন্ট", step3: "সম্পন্ন",
+                pay_instruction: "নিচের নাম্বারে টাকা পাঠান:", product_instruction: "আপনার ডিটেইলস দিন:",
+                trx_label: "TrxID / নাম্বার", product_label: "ডিটেইলস / ইউজারনেম"
             }
         };
 
-        const initialServices = [
-            { id: 1, name: "bKash Personal", type: "currency", unit_name: "BDT", buy_rate: 1, sell_rate: 1, reserve: 50000, min_limit: 100, max_limit: 25000, user_input_label: "Your bKash Number", payment_details: "01722051341 (Personal)", color: "bg-pink-600" },
-            { id: 2, name: "Nagad Personal", type: "currency", unit_name: "BDT", buy_rate: 1, sell_rate: 1, reserve: 30000, min_limit: 100, max_limit: 25000, user_input_label: "Your Nagad Number", payment_details: "01722051341 (Personal)", color: "bg-orange-500" },
-            { id: 3, name: "Rocket Personal", type: "currency", unit_name: "BDT", buy_rate: 1, sell_rate: 1, reserve: 20000, min_limit: 100, max_limit: 25000, user_input_label: "Your Rocket Number", payment_details: "01722051341 (Personal)", color: "bg-purple-500" },
-            { id: 4, name: "Binance / USDT", type: "currency", unit_name: "USD", buy_rate: 115, sell_rate: 122, reserve: 1000, min_limit: 10, max_limit: 500, user_input_label: "Your Binance UID/PayID", payment_details: "Contact Admin", color: "bg-yellow-500" },
-            { id: 5, name: "Gmail (Fresh)", type: "account", unit_name: "Pcs", buy_rate: 10, sell_rate: 15, reserve: 50, min_limit: 1, max_limit: 20, user_input_label: "Your bKash/Nagad for Payment", payment_details: "N/A", color: "bg-red-500" },
-        ];
-
-        const initialOrders = [
-            { id: "ORD-1001", sendServiceId: 1, receiveServiceId: 4, sendAmount: 1220, receiveAmount: 10, userData: "12345678 (UID)", trxId: "8HG7...", status: "pending", deliveryData: "", date: "2024-05-20 10:30 AM" },
-            { id: "ORD-1002", sendServiceId: 5, receiveServiceId: 1, sendAmount: 5, receiveAmount: 50, userData: "017XX...", trxId: "Product Data Sent", status: "completed", deliveryData: "Payment Sent via bKash", date: "2024-05-21 02:15 PM" },
-            { id: "ORD-1003", sendServiceId: 1, receiveServiceId: 2, sendAmount: 500, receiveAmount: 500, userData: "019XX...", trxId: "Invalid Trx", status: "cancelled", deliveryData: "Fake TrxID", date: "2024-05-22 09:00 AM" }
-        ];
-
-        // --- TOAST COMPONENT ---
-        const Toast = ({ message, type, onClose }) => (
-            <div className={`fixed top-4 right-4 z-[100] flex items-center gap-3 px-4 py-3 rounded-xl shadow-2xl animate-fade-in-down ${type === 'success' ? 'bg-green-600 text-white' : type === 'error' ? 'bg-red-600 text-white' : 'bg-amber-500 text-white'}`}>
-                {type === 'success' ? <CheckCircle size={20}/> : <AlertTriangle size={20}/>}
-                <span className="font-bold text-sm">{message}</span>
-                <button onClick={onClose}><X size={16} className="opacity-70 hover:opacity-100"/></button>
-            </div>
-        );
-
-        // --- MAIN APP COMPONENT ---
+        // --- APP COMPONENT ---
         function App() {
-            // States
+            // --- STATE MANAGEMENT WITH LOCAL STORAGE ---
+            // Services
+            const [services, setServices] = useState(() => {
+                const saved = localStorage.getItem('fs_services');
+                return saved ? JSON.parse(saved) : defaultServices;
+            });
+
+            // Orders
+            const [orders, setOrders] = useState(() => {
+                const saved = localStorage.getItem('fs_orders');
+                return saved ? JSON.parse(saved) : [];
+            });
+
+            // Notice
+            const [notice, setNotice] = useState(() => {
+                return localStorage.getItem('fs_notice') || "🌟 Welcome to Fast Sell! Buy/Sell Telegram Stars instantly via bKash/Nagad.";
+            });
+
+            // Save to LocalStorage whenever state changes
+            useEffect(() => { localStorage.setItem('fs_services', JSON.stringify(services)); }, [services]);
+            useEffect(() => { localStorage.setItem('fs_orders', JSON.stringify(orders)); }, [orders]);
+            useEffect(() => { localStorage.setItem('fs_notice', notice); }, [notice]);
+
+            // Sync across tabs
+            useEffect(() => {
+                const handleStorageChange = () => {
+                    const savedServices = localStorage.getItem('fs_services');
+                    const savedOrders = localStorage.getItem('fs_orders');
+                    const savedNotice = localStorage.getItem('fs_notice');
+                    if (savedServices) setServices(JSON.parse(savedServices));
+                    if (savedOrders) setOrders(JSON.parse(savedOrders));
+                    if (savedNotice) setNotice(savedNotice);
+                };
+                window.addEventListener('storage', handleStorageChange);
+                return () => window.removeEventListener('storage', handleStorageChange);
+            }, []);
+
+            // UI States
             const [darkMode, setDarkMode] = useState(false);
             const [lang, setLang] = useState('bn');
             const [view, setView] = useState('home'); 
-            const [services, setServices] = useState(initialServices);
-            const [orders, setOrders] = useState(initialOrders);
-            const [notice, setNotice] = useState("🔥 Hot Offer: USDT রেট কমেছে! এখনই কিনুন। Gmail ডেলিভারি মাত্র ৫ মিনিটে।");
             const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
             const [toasts, setToasts] = useState([]);
-
-            // Auth
             const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
             const [loginUser, setLoginUser] = useState('');
             const [loginPass, setLoginPass] = useState('');
 
-            // Exchange
+            // Exchange States
             const [exchangeStep, setExchangeStep] = useState(1);
-            const [sendId, setSendId] = useState(1);
-            const [receiveId, setReceiveId] = useState(2);
+            const [sendId, setSendId] = useState(services[0]?.id || 1);
+            const [receiveId, setReceiveId] = useState(services[2]?.id || 3); // Default to Telegram Stars
             const [sendAmount, setSendAmount] = useState('');
             const [receiveAmount, setReceiveAmount] = useState('');
             const [userInput, setUserInput] = useState(''); 
             const [trxInput, setTrxInput] = useState(''); 
 
-            // Admin Actions
+            // Admin States
             const [adminTab, setAdminTab] = useState('dashboard');
             const [showAddMethodForm, setShowAddMethodForm] = useState(false);
             const [showManualOrderForm, setShowManualOrderForm] = useState(false);
 
-            // Helpers
             const t = translations[lang];
             const sendService = services.find(s => s.id === parseInt(sendId)) || services[0];
-            const receiveService = services.find(s => s.id === parseInt(receiveId)) || services[1];
+            const receiveService = services.find(s => s.id === parseInt(receiveId)) || services[0];
             const adminWhatsApp = "8801722051341";
 
             // --- FUNCTIONS ---
             const addToast = (msg, type = 'success') => {
                 const id = Date.now();
-                setToasts([...toasts, { id, msg, type }]);
-                setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 4000);
+                setToasts(prev => [...prev, { id, msg, type }]);
+                setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 3000);
             };
             const removeToast = (id) => setToasts(prev => prev.filter(t => t.id !== id));
             const toggleTheme = () => setDarkMode(!darkMode);
@@ -258,11 +211,9 @@
             const handleAdminLogin = (e) => {
                 e.preventDefault();
                 if(loginUser === 'bishal' && loginPass === 'bishal017') {
-                    setIsAdminLoggedIn(true);
-                    setView('admin');
-                    addToast("Welcome Admin!", "success");
+                    setIsAdminLoggedIn(true); setView('admin'); addToast("Welcome Admin!", "success");
                 } else {
-                    addToast("Invalid Credentials!", "error");
+                    addToast("Wrong Info!", "error");
                 }
             };
 
@@ -285,418 +236,320 @@
                 setSendAmount(parseFloat(requiredSend.toFixed(2)));
             };
 
-            const handleNextStep = () => {
-                if(!sendAmount || !receiveAmount || !userInput) {
-                    addToast("Please fill all fields", "error");
-                    return;
-                }
-                const isBinanceReceive = receiveService.name.toLowerCase().includes('binance') || receiveService.name.toLowerCase().includes('usdt');
-                const valueInBDT = parseFloat(receiveAmount) * receiveService.sell_rate;
-                if (isBinanceReceive && valueInBDT < 1000) {
-                    addToast(t.binance_warning, "warning");
-                    return;
-                }
-                setExchangeStep(2);
-            };
-
             const handleSubmitOrder = () => {
-                if(!trxInput) {
-                    addToast(sendService.type === 'account' ? "Please enter product details" : "Please enter TrxID", "error");
-                    return;
-                }
+                if(!trxInput || !userInput) { addToast("All fields required", "error"); return; }
                 const newOrder = {
                     id: `ORD-${Math.floor(Math.random() * 9000) + 1000}`,
-                    sendServiceId: sendService.id,
-                    receiveServiceId: receiveService.id,
-                    sendAmount: sendAmount,
-                    receiveAmount: receiveAmount,
-                    userData: userInput,
-                    trxId: trxInput,
-                    status: "pending",
-                    deliveryData: "",
+                    sendServiceId: sendService.id, receiveServiceId: receiveService.id,
+                    sendAmount: sendAmount, receiveAmount: receiveAmount,
+                    userData: userInput, trxId: trxInput, status: "pending", deliveryData: "",
                     date: new Date().toLocaleString()
                 };
                 setOrders([newOrder, ...orders]);
-                setView('dashboard');
-                setUserInput('');
-                setTrxInput('');
-                setSendAmount('');
-                setReceiveAmount('');
-                setExchangeStep(1);
-                addToast("Order Submitted Successfully!", "success");
+                setView('dashboard'); setUserInput(''); setTrxInput(''); setSendAmount(''); setReceiveAmount(''); setExchangeStep(1);
+                addToast("Order Placed!", "success");
             };
 
             const handleAddService = (e) => {
                 e.preventDefault();
-                const formData = new FormData(e.target);
+                const fd = new FormData(e.target);
                 const newService = {
                     id: Date.now(),
-                    name: formData.get('name'),
-                    type: formData.get('type'),
-                    unit_name: formData.get('unit'),
-                    buy_rate: parseFloat(formData.get('rate')),
-                    sell_rate: parseFloat(formData.get('rate')) * 1.1,
-                    reserve: 0,
-                    min_limit: 1,
-                    max_limit: 100,
-                    user_input_label: formData.get('label'),
-                    payment_details: formData.get('payment'),
-                    color: "bg-slate-500"
+                    name: fd.get('name'), type: fd.get('type'), unit_name: fd.get('unit'),
+                    buy_rate: parseFloat(fd.get('rate')), sell_rate: parseFloat(fd.get('rate')) * 1.1,
+                    reserve: 0, min_limit: 1, max_limit: 10000,
+                    user_input_label: fd.get('label'), payment_details: fd.get('payment'), color: "bg-slate-500"
                 };
-                setServices([...services, newService]);
-                setShowAddMethodForm(false);
-                addToast("New Method Added!", "success");
+                setServices([...services, newService]); setShowAddMethodForm(false);
+                addToast("Method Added!", "success");
             };
 
-            const handleManualOrder = (e) => {
-                e.preventDefault();
-                const formData = new FormData(e.target);
-                const sId = parseInt(formData.get('sendId'));
-                const rId = parseInt(formData.get('receiveId'));
-                const amount = parseFloat(formData.get('amount'));
-                if(!amount || !sId || !rId) {
-                    addToast("Please check inputs", "error");
-                    return;
-                }
-                const sService = services.find(s => s.id === sId);
-                const rService = services.find(s => s.id === rId);
-                const newOrder = {
-                    id: `MAN-${Math.floor(Math.random() * 9000) + 1000}`,
-                    sendServiceId: sId,
-                    receiveServiceId: rId,
-                    sendAmount: amount,
-                    receiveAmount: (amount * sService.buy_rate / rService.sell_rate).toFixed(2),
-                    userData: formData.get('userData'),
-                    trxId: "Manual Entry",
-                    status: "completed",
-                    deliveryData: "Manual Delivery by Admin",
-                    date: new Date().toLocaleString()
-                };
-                setOrders([newOrder, ...orders]);
-                setShowManualOrderForm(false);
-                addToast("Manual Order Created!", "success");
+            const handleOrderAction = (id, action, data = null) => {
+                setOrders(prev => prev.map(o => {
+                    if (o.id !== id) return o;
+                    if (action === 'deliver') return { ...o, status: 'completed', deliveryData: data };
+                    if (action === 'cancel') return { ...o, status: 'cancelled' };
+                    if (action === 'update_send') return { ...o, sendAmount: data };
+                    if (action === 'update_receive') return { ...o, receiveAmount: data };
+                    return o;
+                }));
+                if(action === 'deliver' || action === 'cancel') addToast(`Order ${action}ed!`, action === 'cancel' ? 'error' : 'success');
             };
 
-            const handleOrderUpdate = (id, field, value) => {
-                setOrders(prev => prev.map(o => o.id === id ? { ...o, [field]: value } : o));
-            };
-
-            const handleDeliverOrder = (orderId) => {
-                const input = document.getElementById(`d-${orderId}`);
-                if(!input || !input.value) {
-                    addToast("Please enter delivery data", "error");
-                    return;
-                }
-                const val = input.value;
-                setOrders(prev => prev.map(o => o.id === orderId ? {...o, status: 'completed', deliveryData: val} : o));
-                addToast("Order Approved & Delivered!", "success");
-            };
-
-            const handleCancelOrder = (orderId) => {
-                if(window.confirm("Are you sure you want to CANCEL this order?")) {
-                    setOrders(prev => prev.map(o => o.id === orderId ? {...o, status: 'cancelled'} : o));
-                    addToast("Order Cancelled!", "error");
-                }
-            };
-
-            const copyToClipboard = (text) => {
-                navigator.clipboard.writeText(text);
-                addToast("Copied!", "success");
-            };
-
-            const openWhatsApp = () => {
-                window.open(`https://wa.me/${adminWhatsApp}`, '_blank');
-            };
+            const openWhatsApp = () => window.open(`https://wa.me/${adminWhatsApp}`, '_blank');
 
             return (
                 <div className={`min-h-screen transition-colors duration-300 font-sans ${darkMode ? 'bg-slate-900 text-slate-100' : 'bg-slate-50 text-slate-800'}`}>
                     
-                    {/* TOASTS */}
-                    <div className="z-[100] relative">
-                        {toasts.map(t => <Toast key={t.id} message={t.msg} type={t.type} onClose={() => removeToast(t.id)} />)}
+                    {/* Toasts */}
+                    <div className="z-[100] fixed top-4 right-4 space-y-2">
+                        {toasts.map(t => (
+                            <div key={t.id} className={`flex items-center gap-2 px-4 py-3 rounded-lg shadow-xl animate-fade-in ${t.type === 'success' ? 'bg-green-600 text-white' : 'bg-red-600 text-white'}`}>
+                                <span>{t.msg}</span>
+                                <button onClick={() => removeToast(t.id)}><X size={14}/></button>
+                            </div>
+                        ))}
                     </div>
 
-                    {/* --- NAVBAR SECTION --- */}
-                    <nav className={`sticky top-0 z-50 backdrop-blur-md border-b transition-colors duration-300 ${darkMode ? 'bg-slate-900/80 border-slate-700' : 'bg-white/80 border-slate-200'}`}>
-                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                            <div className="flex justify-between h-16 items-center">
-                                {/* LOGO */}
-                                <div className="flex items-center gap-2 cursor-pointer group" onClick={() => setView('home')}>
-                                    <div className="bg-gradient-to-tr from-indigo-600 to-purple-600 text-white p-2 rounded-xl shadow-lg transform group-hover:rotate-12 transition">
-                                        <ArrowRightLeft size={20} strokeWidth={3} />
-                                    </div>
-                                    <div>
-                                        <h1 className="font-black text-xl tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 to-purple-600">FAst Sell</h1>
-                                        <p className={`text-[10px] font-bold uppercase tracking-widest ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>Ultra Exchange</p>
-                                    </div>
-                                </div>
-
-                                {/* DESKTOP MENU */}
-                                <div className="hidden md:flex items-center space-x-2">
-                                    <button onClick={() => { setView('home'); setExchangeStep(1); }} className={`px-4 py-2 rounded-lg text-sm font-bold transition flex items-center gap-2 ${view === 'home' ? 'bg-indigo-600 text-white shadow-lg' : darkMode ? 'text-slate-300 hover:bg-slate-800' : 'text-slate-600 hover:bg-slate-100'}`}>
-                                        {t.nav_home}
-                                    </button>
-                                    <button onClick={() => setView('dashboard')} className={`px-4 py-2 rounded-lg text-sm font-bold transition flex items-center gap-2 ${view === 'dashboard' ? 'bg-indigo-600 text-white shadow-lg' : darkMode ? 'text-slate-300 hover:bg-slate-800' : 'text-slate-600 hover:bg-slate-100'}`}>
-                                        {t.nav_track}
-                                    </button>
-                                    <button onClick={() => setView(isAdminLoggedIn ? 'admin' : 'login')} className={`px-4 py-2 rounded-lg text-sm font-bold transition flex items-center gap-2 ${view === 'admin' || view === 'login' ? 'bg-indigo-600 text-white shadow-lg' : darkMode ? 'text-slate-300 hover:bg-slate-800' : 'text-slate-600 hover:bg-slate-100'}`}>
-                                        {isAdminLoggedIn ? <Settings size={14}/> : <ShieldAlert size={14}/>} {isAdminLoggedIn ? 'Admin' : t.nav_admin}
-                                    </button>
-                                </div>
-
-                                {/* RIGHT ICONS */}
-                                <div className="flex items-center gap-3">
-                                    <button onClick={toggleLang} className={`p-2 rounded-lg border font-bold text-xs hidden sm:block ${darkMode ? 'border-slate-700 text-slate-300' : 'border-slate-200 text-slate-600'}`}>{lang === 'bn' ? 'EN' : 'BN'}</button>
-                                    <button onClick={toggleTheme} className={`p-2 rounded-lg transition ${darkMode ? 'bg-slate-800 text-yellow-400' : 'bg-slate-100 text-slate-600'}`}>{darkMode ? <Sun size={18}/> : <Moon size={18}/>}</button>
-                                    <button className="md:hidden p-2" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>{mobileMenuOpen ? <X size={24}/> : <Menu size={24}/>}</button>
-                                </div>
+                    {/* Navbar */}
+                    <nav className={`sticky top-0 z-50 backdrop-blur-md border-b ${darkMode ? 'bg-slate-900/80 border-slate-700' : 'bg-white/80 border-slate-200'}`}>
+                        <div className="max-w-6xl mx-auto px-4 h-16 flex justify-between items-center">
+                            <div className="flex items-center gap-2 cursor-pointer" onClick={() => setView('home')}>
+                                <div className="bg-indigo-600 text-white p-2 rounded-lg"><ArrowRightLeft size={20}/></div>
+                                <div><h1 className="font-black text-xl leading-none">Fast Sell</h1><p className="text-[10px] opacity-60">Trusted Exchange</p></div>
+                            </div>
+                            <div className="hidden md:flex gap-2">
+                                <button onClick={() => setView('home')} className={`px-4 py-2 rounded-lg text-sm font-bold ${view==='home'?'bg-indigo-600 text-white':'hover:bg-slate-200 text-slate-600'}`}>{t.nav_home}</button>
+                                <button onClick={() => setView('dashboard')} className={`px-4 py-2 rounded-lg text-sm font-bold ${view==='dashboard'?'bg-indigo-600 text-white':'hover:bg-slate-200 text-slate-600'}`}>{t.nav_track}</button>
+                                <button onClick={() => setView(isAdminLoggedIn ? 'admin' : 'login')} className={`px-4 py-2 rounded-lg text-sm font-bold ${view==='admin'?'bg-indigo-600 text-white':'hover:bg-slate-200 text-slate-600'}`}>{isAdminLoggedIn ? 'Admin' : t.nav_admin}</button>
+                            </div>
+                            <div className="flex gap-2 items-center">
+                                <button onClick={toggleLang} className="p-2 border rounded-lg text-xs font-bold">{lang === 'bn' ? 'EN' : 'BN'}</button>
+                                <button onClick={toggleTheme} className="p-2 rounded-lg bg-slate-200 dark:bg-slate-700">{darkMode ? <Sun size={16}/> : <Moon size={16}/>}</button>
+                                <button className="md:hidden p-2" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}><Menu size={20}/></button>
                             </div>
                         </div>
-
-                        {/* MOBILE MENU */}
                         {mobileMenuOpen && (
-                            <div className={`md:hidden p-4 border-t space-y-2 animate-fade-in ${darkMode ? 'bg-slate-900 border-slate-700' : 'bg-white border-slate-200'}`}>
-                                <button onClick={() => { setView('home'); setMobileMenuOpen(false); }} className="w-full text-left px-4 py-3 rounded-xl font-bold bg-indigo-50 text-indigo-600">{t.nav_home}</button>
-                                <button onClick={() => { setView('dashboard'); setMobileMenuOpen(false); }} className="w-full text-left px-4 py-3 rounded-xl font-bold bg-slate-50">{t.nav_track}</button>
-                                <button onClick={() => { setView(isAdminLoggedIn ? 'admin' : 'login'); setMobileMenuOpen(false); }} className="w-full text-left px-4 py-3 rounded-xl font-bold bg-slate-50">{t.nav_admin}</button>
+                            <div className="md:hidden p-4 border-t space-y-2 bg-white dark:bg-slate-800">
+                                <button onClick={()=>{setView('home');setMobileMenuOpen(false)}} className="block w-full text-left p-2 font-bold">{t.nav_home}</button>
+                                <button onClick={()=>{setView('dashboard');setMobileMenuOpen(false)}} className="block w-full text-left p-2 font-bold">{t.nav_track}</button>
+                                <button onClick={()=>{setView(isAdminLoggedIn?'admin':'login');setMobileMenuOpen(false)}} className="block w-full text-left p-2 font-bold">{t.nav_admin}</button>
                             </div>
                         )}
                     </nav>
 
-                    {/* --- NOTICE TICKER --- */}
-                    <div className={`${darkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'} border-b py-2 overflow-hidden relative`}>
-                        <div className="whitespace-nowrap animate-marquee flex items-center gap-8 text-sm font-medium text-indigo-500">
-                            <span className="flex items-center gap-2"><Bell size={14}/> {notice}</span>
-                            <span className="text-slate-400">|</span>
-                            {services.map(s => <span key={s.id} className={`${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>{s.name}: <span className={s.reserve > 1000 ? "text-green-500" : "text-red-500"}>{s.reserve} {s.unit_name}</span></span>)}
+                    {/* Notice */}
+                    <div className="bg-indigo-50 dark:bg-slate-800 border-b border-indigo-100 dark:border-slate-700 py-2 overflow-hidden">
+                        <div className="whitespace-nowrap animate-marquee text-sm font-medium text-indigo-600 dark:text-indigo-400 flex gap-8">
+                            <span>📢 {notice}</span>
+                            {services.map(s => <span key={s.id}>{s.name}: {s.reserve} {s.unit_name}</span>)}
                         </div>
                     </div>
 
-                    {/* --- MAIN CONTENT AREA --- */}
-                    <main className="max-w-7xl mx-auto px-4 py-8">
-                        
-                        {/* 1. HOME VIEW (Exchange) */}
+                    <main className="max-w-6xl mx-auto px-4 py-8">
+                        {/* HOME */}
                         {view === 'home' && (
-                            <div className="grid lg:grid-cols-12 gap-8 items-start animate-fade-in-up">
-                                {/* Left: Form */}
-                                <div className="lg:col-span-7">
-                                    <div className={`rounded-3xl shadow-2xl overflow-hidden border relative ${darkMode ? 'bg-slate-800 border-slate-700 shadow-black/50' : 'bg-white border-slate-100 shadow-indigo-100'}`}>
-                                        <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-8 text-white relative overflow-hidden">
-                                            <div className="absolute top-0 right-0 p-4 opacity-10"><ArrowRightLeft size={150} /></div>
-                                            <h2 className="text-3xl font-black mb-2">{t.hero_title}</h2>
-                                            <div className="flex items-center gap-2 text-indigo-100 font-medium text-sm">
-                                                <span className={`px-2 py-0.5 rounded-full bg-white/20 ${exchangeStep === 1 ? 'bg-white/40 font-bold' : ''}`}>1. {t.step1}</span><ArrowRight size={14}/><span className={`px-2 py-0.5 rounded-full bg-white/20 ${exchangeStep === 2 ? 'bg-white/40 font-bold' : ''}`}>2. {t.step2}</span><ArrowRight size={14}/><span className="px-2 py-0.5 rounded-full bg-white/20">3. {t.step3}</span>
-                                            </div>
+                            <div className="grid lg:grid-cols-12 gap-8">
+                                <div className="lg:col-span-7 space-y-6">
+                                    <div className={`rounded-3xl shadow-xl border overflow-hidden ${darkMode?'bg-slate-800 border-slate-700':'bg-white border-slate-100'}`}>
+                                        <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-6 text-white">
+                                            <h2 className="text-2xl font-black">{t.hero_title}</h2>
+                                            <p className="text-indigo-200 text-sm">{t.hero_subtitle}</p>
                                         </div>
-                                        
-                                        <div className="p-8">
-                                            {/* Step 1: Calculator */}
-                                            {exchangeStep === 1 && (
-                                                <div className="space-y-6 animate-fade-in">
-                                                    {/* SEND */}
-                                                    <div className={`p-4 rounded-2xl border transition focus-within:ring-2 ring-indigo-500/30 ${darkMode ? 'bg-slate-900 border-slate-700' : 'bg-slate-50 border-slate-100'}`}>
-                                                        <div className="flex justify-between text-xs font-bold uppercase mb-2 opacity-60"><span>{t.send}</span><span>{t.reserve}: {sendService.reserve}</span></div>
-                                                        <div className="flex gap-4">
-                                                            <div className="w-1/3 min-w-[120px]">
-                                                                <select className={`w-full p-3 rounded-xl font-bold outline-none cursor-pointer ${darkMode ? 'bg-slate-800 text-white border-slate-600' : 'bg-white text-slate-800 border-slate-200'} border`} value={sendId} onChange={(e) => { setSendId(e.target.value); setSendAmount(''); setReceiveAmount(''); }}>{services.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}</select>
-                                                            </div>
-                                                            <input type="number" placeholder="Amount" className={`w-full p-3 rounded-xl font-mono text-xl font-bold outline-none bg-transparent placeholder-opacity-30 ${darkMode ? 'placeholder-slate-500 text-white' : 'placeholder-slate-400 text-slate-900'}`} value={sendAmount} onChange={(e) => handleSendAmountChange(e.target.value)}/>
+                                        <div className="p-6 space-y-6">
+                                            {exchangeStep === 1 ? (
+                                                <div className="space-y-4 animate-fade-in">
+                                                    <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
+                                                        <div className="flex justify-between text-xs font-bold uppercase text-slate-500 mb-2"><span>{t.send}</span><span>Reserve: {sendService.reserve}</span></div>
+                                                        <div className="flex gap-2">
+                                                            <select className="bg-transparent font-bold w-1/3 outline-none" value={sendId} onChange={e=>{setSendId(e.target.value);setSendAmount('');setReceiveAmount('')}}>{services.map(s=><option key={s.id} value={s.id}>{s.name}</option>)}</select>
+                                                            <input type="number" placeholder="0.00" className="w-2/3 bg-transparent text-right font-mono text-xl outline-none" value={sendAmount} onChange={e=>handleSendAmountChange(e.target.value)}/>
                                                         </div>
                                                     </div>
-                                                    
-                                                    {/* Swap Icon */}
-                                                    <div className="flex justify-center -my-8 relative z-10"><button className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white p-3 rounded-full shadow-lg hover:scale-110 transition border-4 border-white dark:border-slate-800"><ArrowRightLeft size={24} /></button></div>
-                                                    
-                                                    {/* RECEIVE */}
-                                                    <div className={`p-4 rounded-2xl border transition focus-within:ring-2 ring-indigo-500/30 ${darkMode ? 'bg-slate-900 border-slate-700' : 'bg-slate-50 border-slate-100'}`}>
-                                                        <div className="flex justify-between text-xs font-bold uppercase mb-2 opacity-60"><span>{t.receive}</span><span>{t.reserve}: {receiveService.reserve}</span></div>
-                                                        <div className="flex gap-4">
-                                                            <div className="w-1/3 min-w-[120px]">
-                                                                <select className={`w-full p-3 rounded-xl font-bold outline-none cursor-pointer ${darkMode ? 'bg-slate-800 text-white border-slate-600' : 'bg-white text-slate-800 border-slate-200'} border`} value={receiveId} onChange={(e) => { setReceiveId(e.target.value); setSendAmount(''); setReceiveAmount(''); }}>{services.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}</select>
-                                                            </div>
-                                                            <input type="number" placeholder="Amount" className={`w-full p-3 rounded-xl font-mono text-xl font-bold outline-none bg-transparent placeholder-opacity-30 ${darkMode ? 'placeholder-slate-500 text-white' : 'placeholder-slate-400 text-slate-900'}`} value={receiveAmount} onChange={(e) => handleReceiveAmountChange(e.target.value)}/>
+                                                    <div className="flex justify-center -my-6 relative z-10"><div className="bg-indigo-600 text-white p-2 rounded-full border-4 border-white dark:border-slate-800"><ArrowRightLeft size={16}/></div></div>
+                                                    <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
+                                                        <div className="flex justify-between text-xs font-bold uppercase text-slate-500 mb-2"><span>{t.receive}</span><span>Reserve: {receiveService.reserve}</span></div>
+                                                        <div className="flex gap-2">
+                                                            <select className="bg-transparent font-bold w-1/3 outline-none" value={receiveId} onChange={e=>{setReceiveId(e.target.value);setSendAmount('');setReceiveAmount('')}}>{services.map(s=><option key={s.id} value={s.id}>{s.name}</option>)}</select>
+                                                            <input type="number" placeholder="0.00" className="w-2/3 bg-transparent text-right font-mono text-xl outline-none" value={receiveAmount} onChange={e=>handleReceiveAmountChange(e.target.value)}/>
                                                         </div>
                                                     </div>
-
-                                                    {/* User Input */}
-                                                    <div className={`p-5 rounded-2xl border ${darkMode ? 'bg-indigo-900/20 border-indigo-800' : 'bg-indigo-50 border-indigo-100'}`}>
-                                                        <label className="flex items-center gap-2 text-sm font-bold text-indigo-500 mb-2"><User size={16}/> {receiveService.user_input_label} <span className="text-red-500">*</span></label>
-                                                        <input type="text" placeholder="Where we will send money/product..." className={`w-full p-3 rounded-xl outline-none focus:ring-2 ring-indigo-500/50 ${darkMode ? 'bg-slate-900 border-slate-700 text-white' : 'bg-white border-indigo-200 text-slate-900'} border`} value={userInput} onChange={(e) => setUserInput(e.target.value)}/>
+                                                    <div className="p-4 rounded-xl border border-indigo-200 bg-indigo-50 dark:bg-indigo-900/20">
+                                                        <label className="block text-xs font-bold text-indigo-600 mb-1">{receiveService.user_input_label} *</label>
+                                                        <input type="text" className="w-full bg-transparent outline-none font-medium" placeholder="Type here..." value={userInput} onChange={e=>setUserInput(e.target.value)}/>
                                                     </div>
-
-                                                    <button onClick={handleNextStep} className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold py-4 rounded-xl shadow-xl shadow-indigo-500/20 transform transition active:scale-95 flex items-center justify-center gap-2 text-lg">{t.exchange_btn} <ArrowRight size={20}/></button>
+                                                    <button onClick={()=>{if(!sendAmount||!userInput)return addToast("Fill all fields","error"); setExchangeStep(2)}} className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-xl shadow-lg transition">{t.exchange_btn}</button>
                                                 </div>
-                                            )}
-
-                                            {/* Step 2: Payment */}
-                                            {exchangeStep === 2 && (
-                                                <div className="space-y-6 animate-fade-in">
-                                                    {/* Payment Instruction */}
-                                                    {sendService.type === 'currency' ? (
-                                                        <div className={`p-5 rounded-2xl border border-dashed ${darkMode ? 'bg-yellow-900/10 border-yellow-700 text-yellow-500' : 'bg-yellow-50 border-yellow-300 text-yellow-800'}`}>
-                                                            <h4 className="font-bold flex items-center gap-2 mb-2"><Wallet size={18}/> {t.pay_instruction}</h4>
-                                                            <div className={`p-3 rounded-lg font-mono text-lg font-bold flex justify-between items-center ${darkMode ? 'bg-slate-800' : 'bg-white border'}`}><span>{sendService.payment_details}</span>{sendService.payment_details !== 'Contact Admin' && <button onClick={() => copyToClipboard(sendService.payment_details)}><Copy size={16}/></button>}{sendService.payment_details === 'Contact Admin' && <button onClick={openWhatsApp} className="text-xs bg-green-500 text-white px-2 py-1 rounded">WhatsApp</button>}</div>
-                                                            <p className="text-xs mt-2 opacity-80">Send exactly <b>{sendAmount} {sendService.unit_name}</b> to the above address.</p>
+                                            ) : (
+                                                <div className="space-y-4 animate-fade-in">
+                                                    <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-xl text-yellow-800">
+                                                        <h4 className="font-bold flex gap-2 items-center mb-2"><Wallet size={16}/> {t.pay_instruction}</h4>
+                                                        <div className="bg-white p-2 rounded border border-yellow-100 font-mono text-sm flex justify-between items-center">
+                                                            <span>{sendService.payment_details}</span>
+                                                            <button onClick={()=>navigator.clipboard.writeText(sendService.payment_details)}><Copy size={14}/></button>
                                                         </div>
-                                                    ) : (
-                                                        <div className={`p-5 rounded-2xl border border-dashed ${darkMode ? 'bg-blue-900/10 border-blue-700 text-blue-500' : 'bg-blue-50 border-blue-300 text-blue-800'}`}>
-                                                            <h4 className="font-bold flex items-center gap-2 mb-2"><FileText size={18}/> {t.product_instruction}</h4>
-                                                            <p className="text-sm opacity-80 mb-1">Since you are selling <b>{sendService.name}</b>, please provide the access details below.</p>
-                                                        </div>
-                                                    )}
-
-                                                    {/* TrxID Input */}
-                                                    <div className={`p-5 rounded-2xl border ${darkMode ? 'bg-slate-900 border-slate-700' : 'bg-slate-50 border-slate-100'}`}>
-                                                        <label className="flex items-center gap-2 text-sm font-bold text-slate-500 mb-2">{sendService.type === 'currency' ? <CheckCircle size={16}/> : <FileText size={16}/>} {sendService.type === 'currency' ? t.trx_label : t.product_label} <span className="text-red-500">*</span></label>
-                                                        {sendService.type === 'currency' ? (
-                                                            <input type="text" placeholder="e.g. 8HG7..." className={`w-full p-3 rounded-xl outline-none focus:ring-2 ring-indigo-500/50 ${darkMode ? 'bg-slate-800 border-slate-600 text-white' : 'bg-white border-slate-200 text-slate-900'} border`} value={trxInput} onChange={(e) => setTrxInput(e.target.value)}/>
-                                                        ) : (
-                                                            <textarea rows="3" placeholder="e.g. email:password or download link..." className={`w-full p-3 rounded-xl outline-none focus:ring-2 ring-indigo-500/50 ${darkMode ? 'bg-slate-800 border-slate-600 text-white' : 'bg-white border-slate-200 text-slate-900'} border`} value={trxInput} onChange={(e) => setTrxInput(e.target.value)}></textarea>
-                                                        )}
+                                                        <p className="text-xs mt-2">Send exactly <b>{sendAmount} {sendService.unit_name}</b> here.</p>
                                                     </div>
-
-                                                    {/* Actions */}
-                                                    <div className="flex gap-4"><button onClick={() => setExchangeStep(1)} className="w-1/3 bg-slate-200 text-slate-700 font-bold py-4 rounded-xl hover:bg-slate-300 transition">Back</button><button onClick={handleSubmitOrder} className="w-2/3 bg-green-600 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-green-700 transition flex items-center justify-center gap-2">{t.confirm_btn} <Check size={20}/></button></div>
+                                                    <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-700">
+                                                        <label className="block text-xs font-bold text-slate-500 mb-1">{t.trx_label} / {t.product_label} *</label>
+                                                        <input type="text" className="w-full bg-transparent outline-none" placeholder="Enter transaction info..." value={trxInput} onChange={e=>setTrxInput(e.target.value)}/>
+                                                    </div>
+                                                    <div className="flex gap-3">
+                                                        <button onClick={()=>setExchangeStep(1)} className="w-1/3 bg-slate-200 text-slate-700 font-bold py-3 rounded-xl">Back</button>
+                                                        <button onClick={handleSubmitOrder} className="w-2/3 bg-green-600 text-white font-bold py-3 rounded-xl shadow-lg">{t.confirm_btn}</button>
+                                                    </div>
                                                 </div>
                                             )}
                                         </div>
                                     </div>
                                 </div>
-
-                                {/* Right: Info */}
                                 <div className="lg:col-span-5 space-y-6">
-                                    <div className={`p-6 rounded-3xl border shadow-lg ${darkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-100'}`}>
-                                        <h3 className="font-bold text-lg mb-4 flex items-center gap-2"><Package size={20} className="text-indigo-500"/> {t.rate_title}</h3>
-                                        <div className={`overflow-hidden rounded-xl border ${darkMode ? 'border-slate-700' : 'border-slate-100'}`}>
-                                            <table className="w-full text-sm"><thead className={`${darkMode ? 'bg-slate-900 text-slate-400' : 'bg-slate-50 text-slate-500'}`}><tr><th className="px-4 py-3 text-left">Method</th><th className="px-4 py-3 text-right">Price</th><th className="px-4 py-3 text-right">Stock</th></tr></thead><tbody className="divide-y dark:divide-slate-700">{services.map(s => <tr key={s.id} className={`${darkMode ? 'hover:bg-slate-700/50' : 'hover:bg-slate-50'} transition`}><td className="px-4 py-3 font-medium flex items-center gap-2"><div className={`w-2 h-8 rounded-full ${s.color}`}></div>{s.name}</td><td className="px-4 py-3 text-right font-bold opacity-80">{s.sell_rate} ৳</td><td className="px-4 py-3 text-right"><span className={`px-2 py-0.5 rounded text-xs font-bold ${s.reserve > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{s.reserve}</span></td></tr>)}</tbody></table>
-                                        </div>
-                                    </div>
-                                    <div className={`p-6 rounded-3xl border shadow-sm ${darkMode ? 'bg-slate-800 border-slate-700' : 'bg-indigo-50 border-indigo-100'}`}>
-                                        <h4 className="font-bold mb-2 flex items-center gap-2 text-indigo-600"><Phone size={18}/> Need Help?</h4>
-                                        <p className="text-sm opacity-70 mb-4">For big amounts or any issues, contact Admin.</p>
-                                        <button onClick={openWhatsApp} className="w-full bg-green-500 text-white py-3 rounded-xl font-bold hover:bg-green-600 transition flex items-center justify-center gap-2"><MessageCircle size={20}/> WhatsApp Admin</button>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* 2. ADMIN PANEL */}
-                        {view === 'admin' && isAdminLoggedIn && (
-                            <div className="animate-fade-in">
-                                <div className="flex flex-col md:flex-row gap-6">
-                                    {/* Sidebar */}
-                                    <div className={`md:w-64 rounded-2xl p-4 h-fit border shadow-sm ${darkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}`}>
-                                        <div className="flex items-center gap-3 mb-8 px-2"><div className="w-10 h-10 rounded-full bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center text-white shadow-lg shadow-orange-500/30"><Settings size={20} /></div><div><h3 className="font-bold text-sm">Admin Pro</h3><p className="text-[10px] opacity-60">Control Center</p></div></div>
-                                        <div className="space-y-1">
-                                            {[{ id: 'dashboard', icon: <LayoutDashboard size={18}/>, label: t.admin_dash }, { id: 'orders', icon: <List size={18}/>, label: t.admin_orders, badge: orders.filter(o => o.status === 'pending').length }, { id: 'methods', icon: <Sliders size={18}/>, label: t.admin_methods }, { id: 'settings', icon: <Settings size={18}/>, label: t.admin_settings }].map(tab => (
-                                                <button key={tab.id} onClick={() => setAdminTab(tab.id)} className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition ${adminTab === tab.id ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/30' : 'opacity-70 hover:opacity-100 hover:bg-slate-100 dark:hover:bg-slate-700'}`}><span className="flex items-center gap-3">{tab.icon} {tab.label}</span>{tab.badge > 0 && <span className="bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full">{tab.badge}</span>}</button>
+                                    <div className={`p-6 rounded-3xl border shadow-sm ${darkMode?'bg-slate-800 border-slate-700':'bg-white border-slate-100'}`}>
+                                        <h3 className="font-bold mb-4 flex items-center gap-2"><Package size={18}/> {t.rate_title}</h3>
+                                        <div className="space-y-2">
+                                            {services.map(s => (
+                                                <div key={s.id} className="flex justify-between items-center p-3 rounded-lg bg-slate-50 dark:bg-slate-700/50">
+                                                    <div className="flex items-center gap-2">
+                                                        <div className={`w-2 h-8 rounded-full ${s.color}`}></div>
+                                                        <span className="font-medium text-sm">{s.name}</span>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <div className="font-bold text-sm">{s.sell_rate} ৳</div>
+                                                        <div className="text-[10px] opacity-60">Stock: {s.reserve}</div>
+                                                    </div>
+                                                </div>
                                             ))}
-                                            <button onClick={() => { setIsAdminLoggedIn(false); setView('home'); addToast("Logged Out", "success"); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 mt-10"><LogOut size={18}/> Logout</button>
                                         </div>
                                     </div>
-
-                                    {/* Main Content */}
-                                    <div className="flex-1">
-                                        {/* Tab: Dashboard */}
-                                        {adminTab === 'dashboard' && (
-                                            <div className="space-y-6">
-                                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                                    {[{ title: "Total Orders", val: orders.length, color: "bg-blue-500", icon: <Package/> }, { title: "Pending", val: orders.filter(o => o.status === 'pending').length, color: "bg-orange-500", icon: <Clock/> }, { title: "Completed", val: orders.filter(o => o.status === 'completed').length, color: "bg-green-500", icon: <CheckCircle/> }].map((stat, i) => (
-                                                        <div key={i} className={`p-6 rounded-2xl border shadow-sm flex items-center gap-4 ${darkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}`}><div className={`w-12 h-12 rounded-full ${stat.color} flex items-center justify-center text-white shadow-lg`}>{stat.icon}</div><div><p className="text-sm opacity-60 font-medium">{stat.title}</p><h3 className="text-2xl font-black">{stat.val}</h3></div></div>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {/* Tab: Orders */}
-                                        {adminTab === 'orders' && (
-                                            <div className={`rounded-2xl border overflow-hidden ${darkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}`}>
-                                                <div className="p-4 border-b dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50"><h3 className="font-bold">Order Management</h3><button onClick={() => setShowManualOrderForm(true)} className="bg-indigo-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-indigo-700">+ Create Order</button></div>
-                                                
-                                                {showManualOrderForm && (
-                                                    <div className={`p-4 border-b animate-fade-in ${darkMode ? 'bg-slate-900 border-slate-700' : 'bg-indigo-50 border-indigo-100'}`}><h4 className="font-bold mb-3 text-sm">Create Manual Order</h4><form onSubmit={handleManualOrder} className="grid grid-cols-2 gap-3"><select name="sendId" className={`p-2 rounded border text-sm ${darkMode ? 'bg-slate-800 border-slate-600' : 'bg-white'}`}>{services.map(s => <option key={s.id} value={s.id}>Admin Sends: {s.name}</option>)}</select><select name="receiveId" className={`p-2 rounded border text-sm ${darkMode ? 'bg-slate-800 border-slate-600' : 'bg-white'}`}>{services.map(s => <option key={s.id} value={s.id}>User Paid: {s.name}</option>)}</select><input name="amount" placeholder="Amount Admin Sends" type="number" className={`p-2 rounded border text-sm ${darkMode ? 'bg-slate-800 border-slate-600' : 'bg-white'}`} required/><input name="userData" placeholder="Contact" className={`p-2 rounded border text-sm ${darkMode ? 'bg-slate-800 border-slate-600' : 'bg-white'}`} required/><div className="col-span-2 flex gap-2"><button type="submit" className="bg-green-600 text-white px-4 py-2 rounded text-sm font-bold w-full">Confirm</button><button type="button" onClick={() => setShowManualOrderForm(false)} className="bg-gray-400 text-white px-4 py-2 rounded text-sm font-bold">Cancel</button></div></form></div>
-                                                )}
-
-                                                <div className="p-4 space-y-4 max-h-[600px] overflow-y-auto">
-                                                    {orders.map(order => (
-                                                        <div key={order.id} className={`p-4 rounded-xl border relative transition ${order.status === 'pending' ? 'border-orange-300 bg-orange-50 dark:bg-orange-900/10' : order.status === 'cancelled' ? 'border-red-200 bg-red-50 dark:bg-red-900/10 opacity-70' : 'dark:border-slate-700'}`}>
-                                                            {/* Order Header */}
-                                                            <div className="flex justify-between items-start mb-2"><div><span className="font-bold text-sm bg-indigo-100 text-indigo-700 px-2 py-1 rounded">{order.id}</span><span className="text-xs ml-2 opacity-60">{order.date}</span></div><div className="flex gap-2">{order.status === 'pending' && <button onClick={() => handleCancelOrder(order.id)} className="bg-red-100 text-red-600 px-2 py-1 rounded-full text-xs font-bold hover:bg-red-200 flex items-center gap-1"><X size={12}/> Cancel</button>}<span className={`text-xs font-bold px-2 py-1 rounded-full uppercase ${order.status === 'pending' ? 'bg-orange-500 text-white' : order.status === 'cancelled' ? 'bg-red-500 text-white' : 'bg-green-500 text-white'}`}>{order.status}</span></div></div>
-                                                            
-                                                            {/* Editable Amounts */}
-                                                            <div className="grid md:grid-cols-2 gap-4 mb-3">
-                                                                <div className="text-sm"><div className="flex items-center gap-1 opacity-60 text-xs uppercase">USER PAID</div>{order.status === 'pending' ? <input type="number" value={order.sendAmount} onChange={(e) => handleOrderUpdate(order.id, 'sendAmount', e.target.value)} className="font-bold text-red-500 w-full bg-transparent border-b border-dashed border-red-300 outline-none"/> : <div className="font-bold text-red-500">{order.sendAmount} {services.find(s=>s.id===order.sendServiceId)?.unit_name}</div>}</div>
-                                                                <div className="text-sm text-right"><div className="flex items-center justify-end gap-1 opacity-60 text-xs uppercase">USER RECEIVES</div>{order.status === 'pending' ? <input type="number" value={order.receiveAmount} onChange={(e) => handleOrderUpdate(order.id, 'receiveAmount', e.target.value)} className="font-bold text-green-500 w-full bg-transparent border-b border-dashed border-green-300 outline-none text-right"/> : <div className="font-bold text-green-500">{order.receiveAmount} {services.find(s=>s.id===order.receiveServiceId)?.unit_name}</div>}</div>
-                                                            </div>
-
-                                                            {/* User Data & Actions */}
-                                                            <div className={`p-3 rounded-lg text-sm mb-2 flex justify-between items-center ${darkMode ? 'bg-slate-900' : 'bg-white border'}`}><span><b className="text-xs opacity-50 block">CONTACT:</b> {order.userData}</span><button onClick={() => copyToClipboard(order.userData)}><Copy size={14}/></button></div>
-                                                            <div className={`p-3 rounded-lg text-sm mb-3 flex justify-between items-center ${darkMode ? 'bg-slate-900' : 'bg-white border'}`}><span><b className="text-xs opacity-50 block">DATA:</b> {order.trxId}</span><button onClick={() => copyToClipboard(order.trxId)}><Copy size={14}/></button></div>
-                                                            {order.status === 'pending' && <div className="flex gap-2"><input id={`d-${order.id}`} type="text" placeholder="Delivery Data" className={`flex-1 p-2 rounded border text-sm outline-none ${darkMode ? 'bg-slate-900 border-slate-600' : 'bg-white'}`}/><button onClick={() => handleDeliverOrder(order.id)} className="bg-green-600 text-white px-4 py-2 rounded text-sm font-bold hover:bg-green-700 flex items-center gap-2"><CheckCircle size={16}/> Approve</button></div>}
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {/* Tab: Methods */}
-                                        {adminTab === 'methods' && (
-                                            <div className="space-y-4">
-                                                {showAddMethodForm && (
-                                                    <div className={`p-6 rounded-xl border animate-fade-in ${darkMode ? 'bg-slate-800 border-slate-700' : 'bg-indigo-50 border-indigo-100'}`}><h4 className="font-bold mb-4">Add New Method</h4><form onSubmit={handleAddService} className="space-y-4"><div className="grid grid-cols-2 gap-4"><input name="name" required placeholder="Name" className={`p-3 rounded-lg text-sm border outline-none w-full ${darkMode ? 'bg-slate-800 border-slate-600' : 'bg-white'}`}/><select name="type" className={`p-3 rounded-lg text-sm border outline-none w-full ${darkMode ? 'bg-slate-800 border-slate-600' : 'bg-white'}`}><option value="currency">Currency</option><option value="account">Account</option></select></div><input name="payment" required placeholder="Our Pay Address" className={`p-3 rounded-lg text-sm border outline-none w-full ${darkMode ? 'bg-slate-800 border-slate-600' : 'bg-white'}`}/><div className="grid grid-cols-2 gap-4"><input name="unit" required placeholder="Unit" className={`p-3 rounded-lg text-sm border outline-none w-full ${darkMode ? 'bg-slate-800 border-slate-600' : 'bg-white'}`}/><input name="rate" required type="number" placeholder="Rate" className={`p-3 rounded-lg text-sm border outline-none w-full ${darkMode ? 'bg-slate-800 border-slate-600' : 'bg-white'}`}/></div><input name="label" required placeholder="User Input Label" className={`p-3 rounded-lg text-sm border outline-none w-full ${darkMode ? 'bg-slate-800 border-slate-600' : 'bg-white'}`}/><div className="flex gap-2"><button type="button" onClick={() => setShowAddMethodForm(false)} className="px-4 py-2 rounded-lg bg-gray-500 text-white font-bold text-sm">Cancel</button><button type="submit" className="px-4 py-2 rounded-lg bg-green-600 text-white font-bold text-sm">Save</button></div></form></div>
-                                                )}
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                    {services.map(s => <div key={s.id} className={`p-4 rounded-xl border flex flex-col gap-2 ${darkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}`}><div className="flex justify-between items-center"><div className="flex items-center gap-3"><div className={`w-8 h-8 rounded-lg ${s.color} text-white flex items-center justify-center font-bold text-xs`}>{s.name[0]}</div><div className="font-bold text-sm">{s.name}</div></div><button onClick={() => setServices(services.filter(srv => srv.id !== s.id))} className="text-red-500"><Trash2 size={16}/></button></div><div className="text-xs opacity-60 bg-slate-100 dark:bg-slate-900 p-2 rounded"><b>Pay:</b> {s.payment_details}</div></div>)}
-                                                    <button onClick={() => setShowAddMethodForm(true)} className="border-2 border-dashed border-indigo-300 text-indigo-500 rounded-xl p-4 flex flex-col items-center justify-center gap-2 hover:bg-indigo-50 dark:hover:bg-slate-800 transition"><Plus size={24}/><span className="font-bold text-sm">Add New Method</span></button>
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {/* Tab: Settings */}
-                                        {adminTab === 'settings' && (
-                                            <div className={`p-6 rounded-2xl border shadow-sm ${darkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}`}><h3 className="font-bold mb-4">Site Control</h3><textarea className="w-full p-4 rounded-xl border outline-none mb-4" rows="3" value={notice} onChange={(e) => setNotice(e.target.value)}></textarea><button className="bg-indigo-600 text-white px-6 py-2 rounded-lg font-bold text-sm" onClick={() => addToast("Notice Updated", "success")}>Update Notice</button></div>
-                                        )}
+                                    <div className="bg-indigo-600 text-white p-6 rounded-3xl shadow-lg text-center">
+                                        <h4 className="font-bold mb-2">Need Support?</h4>
+                                        <button onClick={openWhatsApp} className="bg-white text-indigo-600 px-6 py-2 rounded-full font-bold text-sm flex items-center gap-2 mx-auto"><MessageCircle size={16}/> WhatsApp Admin</button>
                                     </div>
                                 </div>
                             </div>
                         )}
 
-                        {/* 3. LOGIN (ADMIN ONLY) */}
-                        {view === 'login' && (
-                            <div className="max-w-md mx-auto mt-10 animate-fade-in-up">
-                                <div className={`p-8 rounded-3xl border shadow-2xl text-center ${darkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-100'}`}><div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4"><ShieldAlert size={32}/></div><h2 className="text-2xl font-black mb-6">{t.login_title}</h2><form onSubmit={handleAdminLogin} className="space-y-4 text-left"><input type="text" placeholder="Username" className="w-full p-3 rounded-xl border outline-none" value={loginUser} onChange={e => setLoginUser(e.target.value)}/><input type="password" placeholder="Password" className="w-full p-3 rounded-xl border outline-none" value={loginPass} onChange={e => setLoginPass(e.target.value)}/><button className="w-full bg-red-600 text-white py-3 rounded-xl font-bold">Login</button></form></div>
-                            </div>
-                        )}
-
-                        {/* 4. DASHBOARD (PUBLIC HISTORY) */}
+                        {/* DASHBOARD */}
                         {view === 'dashboard' && (
-                            <div className={`rounded-3xl border shadow-lg overflow-hidden min-h-[60vh] ${darkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-100'}`}>
-                                <div className="bg-slate-900 p-8 text-white flex justify-between items-center relative"><h2 className="text-2xl font-bold flex items-center gap-2"><List/> {t.dashboard_title}</h2></div>
+                            <div className={`rounded-3xl shadow-lg border overflow-hidden min-h-[60vh] ${darkMode?'bg-slate-800 border-slate-700':'bg-white border-slate-100'}`}>
+                                <div className="p-6 bg-slate-100 dark:bg-slate-900 border-b dark:border-slate-700"><h2 className="font-bold text-xl">{t.dashboard_title}</h2></div>
                                 <div className="p-6 space-y-4">
-                                    {orders.length === 0 ? <div className="text-center py-10 opacity-50">No orders found</div> : orders.map(order => (
-                                        <div key={order.id} className={`p-4 rounded-xl border group hover:shadow-md transition ${darkMode ? 'bg-slate-900 border-slate-700' : 'bg-white'}`}>
-                                            <div className="flex justify-between items-center mb-2"><div><span className="font-mono text-xs opacity-50">#{order.id}</span><span className={`text-xs font-bold px-2 py-0.5 rounded ${order.status === 'completed' ? 'bg-green-100 text-green-700' : order.status === 'cancelled' ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700'}`}>{order.status}</span></div></div>
-                                            <div className="font-bold flex items-center gap-2"><span className="text-red-500">{order.sendAmount} {services.find(s=>s.id===order.sendServiceId)?.unit_name}</span><ArrowRightLeft size={14} className="opacity-50"/><span className="text-green-500">{order.receiveAmount} {services.find(s=>s.id===order.receiveServiceId)?.unit_name}</span></div>
-                                            {order.deliveryData && <div className="mt-3 bg-green-500/10 border border-green-500/20 p-3 rounded-lg text-sm text-green-600 font-mono break-all"><b>Received:</b> {order.deliveryData}</div>}
+                                    {orders.length === 0 ? <p className="text-center opacity-50">No orders yet.</p> : orders.map(o => (
+                                        <div key={o.id} className="p-4 border rounded-xl hover:shadow-md transition dark:border-slate-700">
+                                            <div className="flex justify-between mb-2">
+                                                <span className="text-xs font-bold bg-slate-200 dark:bg-slate-700 px-2 py-1 rounded">{o.id}</span>
+                                                <span className={`text-xs font-bold px-2 py-1 rounded uppercase ${o.status==='completed'?'bg-green-100 text-green-700':o.status==='cancelled'?'bg-red-100 text-red-700':'bg-orange-100 text-orange-700'}`}>{o.status}</span>
+                                            </div>
+                                            <div className="font-bold flex items-center gap-2 text-sm">
+                                                <span className="text-red-500">{o.sendAmount} {services.find(s=>s.id===o.sendServiceId)?.unit_name}</span>
+                                                <ArrowRight size={14} className="opacity-50"/>
+                                                <span className="text-green-500">{o.receiveAmount} {services.find(s=>s.id===o.receiveServiceId)?.unit_name}</span>
+                                            </div>
+                                            {o.deliveryData && <div className="mt-2 bg-green-50 p-2 rounded text-xs text-green-800 font-mono border border-green-200">Received: {o.deliveryData}</div>}
                                         </div>
                                     ))}
                                 </div>
                             </div>
                         )}
+
+                        {/* ADMIN */}
+                        {view === 'admin' && isAdminLoggedIn && (
+                            <div className="grid md:grid-cols-4 gap-6 animate-fade-in">
+                                <div className={`md:col-span-1 rounded-2xl p-4 h-fit border shadow-sm ${darkMode?'bg-slate-800 border-slate-700':'bg-white border-slate-200'}`}>
+                                    <div className="space-y-1">
+                                        {['dashboard','orders','methods','settings'].map(tab => (
+                                            <button key={tab} onClick={()=>setAdminTab(tab)} className={`w-full text-left px-4 py-3 rounded-xl text-sm font-bold capitalize ${adminTab===tab?'bg-indigo-600 text-white':'hover:bg-slate-100 dark:hover:bg-slate-700'}`}>{translations.en[`admin_${tab}`]}</button>
+                                        ))}
+                                        <button onClick={()=>{setIsAdminLoggedIn(false);setView('home')}} className="w-full text-left px-4 py-3 rounded-xl text-sm font-bold text-red-500 hover:bg-red-50 mt-4">Logout</button>
+                                    </div>
+                                </div>
+                                <div className="md:col-span-3 space-y-6">
+                                    {adminTab === 'dashboard' && (
+                                        <div className="grid grid-cols-3 gap-4">
+                                            {[{l:'Total',v:orders.length,c:'bg-blue-500'},{l:'Pending',v:orders.filter(o=>o.status==='pending').length,c:'bg-orange-500'},{l:'Done',v:orders.filter(o=>o.status==='completed').length,c:'bg-green-500'}].map((s,i)=>(
+                                                <div key={i} className={`${s.c} text-white p-6 rounded-2xl shadow-lg`}>
+                                                    <div className="text-xs opacity-80 uppercase">{s.l}</div>
+                                                    <div className="text-3xl font-black">{s.v}</div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                    {adminTab === 'orders' && (
+                                        <div className="space-y-4">
+                                            {orders.map(o => (
+                                                <div key={o.id} className={`p-4 rounded-xl border relative bg-white dark:bg-slate-800 ${o.status==='pending'?'border-orange-400':'dark:border-slate-700'}`}>
+                                                    <div className="flex justify-between items-start mb-3">
+                                                        <div><span className="font-bold text-sm text-indigo-600">#{o.id}</span> <span className="text-xs opacity-50">{o.date}</span></div>
+                                                        <div className="flex gap-2">
+                                                            {o.status==='pending' && <button onClick={()=>handleOrderAction(o.id,'cancel')} className="bg-red-100 text-red-600 px-2 py-1 rounded text-xs font-bold">Cancel</button>}
+                                                            <span className="text-xs font-bold bg-slate-100 px-2 py-1 rounded uppercase">{o.status}</span>
+                                                        </div>
+                                                    </div>
+                                                    <div className="grid grid-cols-2 gap-4 text-sm mb-3">
+                                                        <div>
+                                                            <label className="text-[10px] font-bold opacity-50 block">USER SENT</label>
+                                                            {o.status==='pending' ? <input type="number" className="font-bold text-red-500 w-full bg-transparent border-b outline-none" value={o.sendAmount} onChange={e=>handleOrderAction(o.id,'update_send',e.target.value)}/> : <span className="font-bold text-red-500">{o.sendAmount}</span>}
+                                                            <span className="text-xs ml-1">{services.find(s=>s.id===o.sendServiceId)?.name}</span>
+                                                        </div>
+                                                        <div className="text-right">
+                                                            <label className="text-[10px] font-bold opacity-50 block">USER GETS</label>
+                                                            {o.status==='pending' ? <input type="number" className="font-bold text-green-500 w-full bg-transparent border-b outline-none text-right" value={o.receiveAmount} onChange={e=>handleOrderAction(o.id,'update_receive',e.target.value)}/> : <span className="font-bold text-green-500">{o.receiveAmount}</span>}
+                                                            <span className="text-xs ml-1">{services.find(s=>s.id===o.receiveServiceId)?.name}</span>
+                                                        </div>
+                                                    </div>
+                                                    <div className="bg-slate-50 dark:bg-slate-900 p-2 rounded text-xs mb-2">
+                                                        <div><b>User:</b> {o.userData}</div>
+                                                        <div><b>Proof:</b> {o.trxId}</div>
+                                                    </div>
+                                                    {o.status === 'pending' && (
+                                                        <div className="flex gap-2">
+                                                            <input id={`d-${o.id}`} type="text" placeholder="Delivery Data (Secret)" className="flex-1 border p-2 rounded text-xs outline-none"/>
+                                                            <button onClick={()=>{const d=document.getElementById(`d-${o.id}`).value; if(d) handleOrderAction(o.id,'deliver',d)}} className="bg-green-600 text-white px-4 py-2 rounded text-xs font-bold">Approve</button>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                    {adminTab === 'methods' && (
+                                        <div className="space-y-4">
+                                            {services.map(s => (
+                                                <div key={s.id} className="p-4 border rounded-xl flex justify-between items-center bg-white dark:bg-slate-800 dark:border-slate-700">
+                                                    <div>
+                                                        <div className="font-bold">{s.name} <span className="text-xs opacity-60">({s.type})</span></div>
+                                                        <div className="text-xs opacity-60">Buy: {s.buy_rate} | Sell: {s.sell_rate} | Reserve: {s.reserve}</div>
+                                                    </div>
+                                                    <button onClick={()=>{if(confirm('Delete?')) setServices(services.filter(x=>x.id!==s.id))}} className="text-red-500"><Trash2 size={16}/></button>
+                                                </div>
+                                            ))}
+                                            <div className="border-2 border-dashed p-4 rounded-xl text-center cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800" onClick={()=>setShowAddMethodForm(!showAddMethodForm)}>
+                                                <span className="font-bold text-indigo-500">+ Add Method</span>
+                                            </div>
+                                            {showAddMethodForm && (
+                                                <form onSubmit={handleAddService} className="p-4 border rounded-xl space-y-3 bg-white dark:bg-slate-800">
+                                                    <input name="name" placeholder="Name" required className="w-full p-2 border rounded text-sm"/>
+                                                    <div className="grid grid-cols-2 gap-2">
+                                                        <select name="type" className="p-2 border rounded text-sm"><option value="currency">Currency</option><option value="account">Account</option></select>
+                                                        <input name="unit" placeholder="Unit" required className="p-2 border rounded text-sm"/>
+                                                    </div>
+                                                    <input name="rate" type="number" placeholder="Rate" required className="w-full p-2 border rounded text-sm"/>
+                                                    <input name="label" placeholder="User Input Label" required className="w-full p-2 border rounded text-sm"/>
+                                                    <input name="payment" placeholder="Our Payment Details" required className="w-full p-2 border rounded text-sm"/>
+                                                    <button className="w-full bg-green-600 text-white py-2 rounded text-sm font-bold">Save Method</button>
+                                                </form>
+                                            )}
+                                        </div>
+                                    )}
+                                    {adminTab === 'settings' && (
+                                        <div className="p-6 border rounded-xl bg-white dark:bg-slate-800 dark:border-slate-700">
+                                            <h3 className="font-bold mb-2">Website Notice</h3>
+                                            <textarea className="w-full p-3 border rounded-lg text-sm mb-3 h-24 outline-none dark:bg-slate-900" value={notice} onChange={e=>setNotice(e.target.value)}></textarea>
+                                            <button className="bg-indigo-600 text-white px-6 py-2 rounded-lg font-bold text-sm">Save Notice</button>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* ADMIN LOGIN */}
+                        {view === 'login' && (
+                            <div className="max-w-md mx-auto mt-20 p-8 rounded-3xl shadow-2xl border dark:border-slate-700 bg-white dark:bg-slate-800 text-center">
+                                <h2 className="text-2xl font-black mb-6">Admin Access</h2>
+                                <form onSubmit={handleAdminLogin} className="space-y-4">
+                                    <input type="text" placeholder="Username" className="w-full p-3 rounded-xl border outline-none" value={loginUser} onChange={e=>setLoginUser(e.target.value)}/>
+                                    <input type="password" placeholder="Password" className="w-full p-3 rounded-xl border outline-none" value={loginPass} onChange={e=>setLoginPass(e.target.value)}/>
+                                    <button className="w-full bg-indigo-600 text-white py-3 rounded-xl font-bold">Login Dashboard</button>
+                                </form>
+                            </div>
+                        )}
                     </main>
 
-                    {/* --- FOOTER & FLOATING BTN --- */}
-                    <div className="fixed bottom-6 right-6 z-50"><button onClick={openWhatsApp} className="bg-green-500 text-white p-4 rounded-full shadow-2xl hover:scale-110 transition animate-bounce-slow flex items-center gap-2"><MessageCircle size={24}/></button></div>
-                    <footer className={`py-8 text-center text-xs opacity-50 ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>&copy; 2024 fastsell. All rights reserved.</footer>
+                    <footer className="text-center py-8 text-xs opacity-50">&copy; 2024 Fast Sell Exchange</footer>
                 </div>
             );
         }
 
-        // RENDER
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
     </script>
 </body>
 </html>
-
-
