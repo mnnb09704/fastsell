@@ -23,9 +23,6 @@
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide-react@0.263.1/dist/umd/lucide-react.min.js"></script>
-    
     <!-- Font -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 
@@ -67,42 +64,53 @@
 
     <script type="text/babel">
         const { useState, useEffect } = React;
-        const Icons = window.lucideReact || {};
-        const getIcon = (name) => Icons[name] || (() => <span>?</span>);
 
-        // Icons
-        const ArrowRightLeft = getIcon('ArrowRightLeft');
-        const Settings = getIcon('Settings');
-        const User = getIcon('User');
-        const Package = getIcon('Package');
-        const CheckCircle = getIcon('CheckCircle');
-        const Clock = getIcon('Clock');
-        const Trash2 = getIcon('Trash2');
-        const Copy = getIcon('Copy');
-        const LogOut = getIcon('LogOut');
-        const Bell = getIcon('Bell');
-        const ShieldAlert = getIcon('ShieldAlert');
-        const Sun = getIcon('Sun');
-        const Moon = getIcon('Moon');
-        const MessageCircle = getIcon('MessageCircle');
-        const LayoutDashboard = getIcon('LayoutDashboard');
-        const List = getIcon('List');
-        const Sliders = getIcon('Sliders');
-        const X = getIcon('X');
-        const Menu = getIcon('Menu');
-        const ArrowRight = getIcon('ArrowRight');
-        const Wallet = getIcon('Wallet');
-        const FileText = getIcon('FileText');
-        const Phone = getIcon('Phone');
-        const Plus = getIcon('Plus');
-        const Star = getIcon('Star');
+        // --- INTERNAL ICON SYSTEM ---
+        const IconBase = ({ children, size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>{children}</svg>
+        );
+
+        const Icons = {
+            ArrowRightLeft: (p) => <IconBase {...p}><path d="m16 3 4 4-4 4"/><path d="M20 7H4"/><path d="m8 21-4-4 4-4"/><path d="M4 17h16"/></IconBase>,
+            Settings: (p) => <IconBase {...p}><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.47a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></IconBase>,
+            User: (p) => <IconBase {...p}><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></IconBase>,
+            Package: (p) => <IconBase {...p}><path d="m16.5 9.4-9-5.19"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="M3.27 6.96 12 12.01l8.73-5.05"/><path d="M12 22.08V12"/></IconBase>,
+            CheckCircle: (p) => <IconBase {...p}><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></IconBase>,
+            Clock: (p) => <IconBase {...p}><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></IconBase>,
+            Trash2: (p) => <IconBase {...p}><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></IconBase>,
+            Copy: (p) => <IconBase {...p}><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></IconBase>,
+            LogOut: (p) => <IconBase {...p}><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></IconBase>,
+            Bell: (p) => <IconBase {...p}><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></IconBase>,
+            ShieldAlert: (p) => <IconBase {...p}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></IconBase>,
+            Sun: (p) => <IconBase {...p}><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></IconBase>,
+            Moon: (p) => <IconBase {...p}><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></IconBase>,
+            MessageCircle: (p) => <IconBase {...p}><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></IconBase>,
+            LayoutDashboard: (p) => <IconBase {...p}><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></IconBase>,
+            List: (p) => <IconBase {...p}><line x1="8" x2="21" y1="6" y2="6"/><line x1="8" x2="21" y1="12" y2="12"/><line x1="8" x2="21" y1="18" y2="18"/><line x1="3" x2="3.01" y1="6" y2="6"/><line x1="3" x2="3.01" y1="12" y2="12"/><line x1="3" x2="3.01" y1="18" y2="18"/></IconBase>,
+            Sliders: (p) => <IconBase {...p}><line x1="4" x2="4" y1="21" y2="14"/><line x1="4" x2="4" y1="10" y2="3"/><line x1="12" x2="12" y1="21" y2="12"/><line x1="12" x2="12" y1="8" y2="3"/><line x1="20" x2="20" y1="21" y2="16"/><line x1="20" x2="20" y1="12" y2="3"/><line x1="2" x2="6" y1="14" y2="14"/><line x1="10" x2="14" y1="8" y2="8"/><line x1="18" x2="22" y1="16" y2="16"/></IconBase>,
+            X: (p) => <IconBase {...p}><path d="M18 6 6 18"/><path d="m6 6 12 12"/></IconBase>,
+            Menu: (p) => <IconBase {...p}><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></IconBase>,
+            ArrowRight: (p) => <IconBase {...p}><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></IconBase>,
+            Wallet: (p) => <IconBase {...p}><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/></IconBase>,
+            FileText: (p) => <IconBase {...p}><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></IconBase>,
+            Phone: (p) => <IconBase {...p}><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></IconBase>,
+            Plus: (p) => <IconBase {...p}><path d="M5 12h14"/><path d="M12 5v14"/></IconBase>,
+            Check: (p) => <IconBase {...p}><path d="M20 6 9 17l-5-5"/></IconBase>,
+            AlertTriangle: (p) => <IconBase {...p}><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></IconBase>,
+            Edit: (p) => <IconBase {...p}><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></IconBase>,
+        };
+
+        const {
+            ArrowRightLeft, Settings, User, Package, CheckCircle, Clock, Trash2, Copy, LogOut, Bell, ShieldAlert,
+            Sun, Moon, MessageCircle, LayoutDashboard, List, Sliders, X, Menu, ArrowRight, Wallet, FileText, Phone, Plus, Check, AlertTriangle, Edit
+        } = Icons;
 
         // --- CLEAN INITIAL DATA ---
-        // এই ডাটাগুলো ডিফল্ট থাকবে, কিন্তু লোকাল স্টোরেজে সেভ হলে অ্যাডমিন প্যানেলের ডাটা লোড হবে
+        // Telegram Stars payment_details -> Admin UID
         const defaultServices = [
-            { id: 1, name: "bKash Personal", type: "currency", unit_name: "BDT", buy_rate: 1, sell_rate: 1, reserve: 50000, min_limit: 50, max_limit: 25000, user_input_label: "Your bKash Number", payment_details: "01722051341 (Personal)", color: "bg-pink-600" },
-            { id: 2, name: "Nagad Personal", type: "currency", unit_name: "BDT", buy_rate: 1, sell_rate: 1, reserve: 50000, min_limit: 50, max_limit: 25000, user_input_label: "Your Nagad Number", payment_details: "01722051341 (Personal)", color: "bg-orange-500" },
-            { id: 3, name: "Telegram Stars", type: "account", unit_name: "Stars", buy_rate: 2.20, sell_rate: 2.80, reserve: 10000, min_limit: 15, max_limit: 5000, user_input_label: "Telegram Username", payment_details: "Contact Admin for User", color: "bg-blue-500" }
+            { id: 1, name: "bKash Personal", type: "currency", unit_name: "BDT", buy_rate: 1, sell_rate: 1, reserve: 50000, min_limit: 50, max_limit: 25000, user_input_label: "Your bKash Number", payment_details: "01722051341", color: "bg-pink-600" },
+            { id: 2, name: "Nagad Personal", type: "currency", unit_name: "BDT", buy_rate: 1, sell_rate: 1, reserve: 50000, min_limit: 50, max_limit: 25000, user_input_label: "Your Nagad Number", payment_details: "01722051341", color: "bg-orange-500" },
+            { id: 3, name: "Telegram Stars", type: "account", unit_name: "Stars", buy_rate: 2.20, sell_rate: 2.80, reserve: 10000, min_limit: 15, max_limit: 5000, user_input_label: "Your Telegram User ID/Link", payment_details: "@Admin_UID_Here", color: "bg-blue-500" }
         ];
 
         const translations = {
@@ -114,8 +122,11 @@
                 rate_title: "Today's Rates", login_title: "Admin Login", dashboard_title: "Order History",
                 admin_dash: "Dashboard", admin_orders: "Orders", admin_methods: "Methods", admin_settings: "Settings",
                 step1: "Calculator", step2: "Payment", step3: "Done",
-                pay_instruction: "Please send money to:", product_instruction: "Provide your account details:",
-                trx_label: "TrxID / Number", product_label: "Details / Username"
+                pay_instruction_money: "Please send money to:",
+                pay_instruction_account: "Please send product/stars to:",
+                trx_label_money: "Enter Transaction ID (TrxID)",
+                trx_label_account: "Enter Your Telegram User ID/Link (Sender)",
+                binance_warning: "Minimum 1000 BDT required for Binance/USDT withdrawals."
             },
             bn: {
                 nav_home: "হোম", nav_track: "অর্ডার ট্র্যাক", nav_admin: "এডমিন",
@@ -125,37 +136,35 @@
                 rate_title: "আজকের রেট", login_title: "এডমিন লগইন", dashboard_title: "অর্ডার ইতিহাস",
                 admin_dash: "ড্যাশবোর্ড", admin_orders: "অর্ডার", admin_methods: "মেথড", admin_settings: "সেটিংস",
                 step1: "হিসাব", step2: "পেমেন্ট", step3: "সম্পন্ন",
-                pay_instruction: "নিচের নাম্বারে টাকা পাঠান:", product_instruction: "আপনার ডিটেইলস দিন:",
-                trx_label: "TrxID / নাম্বার", product_label: "ডিটেইলস / ইউজারনেম"
+                pay_instruction_money: "নিচের নাম্বারে টাকা পাঠান:",
+                pay_instruction_account: "নিচের আইডিতে স্টার/প্রোডাক্ট পাঠান:",
+                trx_label_money: "Transaction ID (TrxID) দিন",
+                trx_label_account: "আপনার Telegram User ID দিন (Sender)",
+                binance_warning: "Binance/USDT তে নিতে হলে মিনিমাম ১০০০ টাকার অর্ডার হতে হবে।"
             }
         };
 
         // --- APP COMPONENT ---
         function App() {
-            // --- STATE MANAGEMENT WITH LOCAL STORAGE ---
-            // Services
+            // --- STATE MANAGEMENT ---
             const [services, setServices] = useState(() => {
                 const saved = localStorage.getItem('fs_services');
                 return saved ? JSON.parse(saved) : defaultServices;
             });
 
-            // Orders
             const [orders, setOrders] = useState(() => {
                 const saved = localStorage.getItem('fs_orders');
                 return saved ? JSON.parse(saved) : [];
             });
 
-            // Notice
             const [notice, setNotice] = useState(() => {
-                return localStorage.getItem('fs_notice') || "🌟 Welcome to Fast Sell! Buy/Sell Telegram Stars instantly via bKash/Nagad.";
+                return localStorage.getItem('fs_notice') || "🌟 Welcome to Fast Sell! Buy/Sell Telegram Stars instantly.";
             });
 
-            // Save to LocalStorage whenever state changes
             useEffect(() => { localStorage.setItem('fs_services', JSON.stringify(services)); }, [services]);
             useEffect(() => { localStorage.setItem('fs_orders', JSON.stringify(orders)); }, [orders]);
             useEffect(() => { localStorage.setItem('fs_notice', notice); }, [notice]);
 
-            // Sync across tabs
             useEffect(() => {
                 const handleStorageChange = () => {
                     const savedServices = localStorage.getItem('fs_services');
@@ -182,7 +191,7 @@
             // Exchange States
             const [exchangeStep, setExchangeStep] = useState(1);
             const [sendId, setSendId] = useState(services[0]?.id || 1);
-            const [receiveId, setReceiveId] = useState(services[2]?.id || 3); // Default to Telegram Stars
+            const [receiveId, setReceiveId] = useState(services[2]?.id || 3); 
             const [sendAmount, setSendAmount] = useState('');
             const [receiveAmount, setReceiveAmount] = useState('');
             const [userInput, setUserInput] = useState(''); 
@@ -192,6 +201,7 @@
             const [adminTab, setAdminTab] = useState('dashboard');
             const [showAddMethodForm, setShowAddMethodForm] = useState(false);
             const [showManualOrderForm, setShowManualOrderForm] = useState(false);
+            const [editingMethod, setEditingMethod] = useState(null); // New state for editing
 
             const t = translations[lang];
             const sendService = services.find(s => s.id === parseInt(sendId)) || services[0];
@@ -250,18 +260,59 @@
                 addToast("Order Placed!", "success");
             };
 
+            const handleNextStep = () => {
+                if(!sendAmount || !userInput) { addToast("Fill all fields", "error"); return; }
+                
+                // Limit Validation
+                if(parseFloat(sendAmount) < sendService.min_limit) {
+                    addToast(`Minimum limit is ${sendService.min_limit} ${sendService.unit_name}`, "error");
+                    return;
+                }
+                if(parseFloat(sendAmount) > sendService.max_limit) {
+                    addToast(`Maximum limit is ${sendService.max_limit} ${sendService.unit_name}`, "error");
+                    return;
+                }
+
+                // Binance Threshold Check
+                const isBinanceReceive = receiveService.name.toLowerCase().includes('binance') || receiveService.name.toLowerCase().includes('usdt');
+                const valueInBDT = parseFloat(receiveAmount) * receiveService.sell_rate;
+                if (isBinanceReceive && valueInBDT < 1000) {
+                    addToast(t.binance_warning, "warning");
+                    return;
+                }
+
+                setExchangeStep(2);
+            };
+
+            // ADD / UPDATE METHOD
             const handleAddService = (e) => {
                 e.preventDefault();
                 const fd = new FormData(e.target);
-                const newService = {
-                    id: Date.now(),
+                const methodData = {
                     name: fd.get('name'), type: fd.get('type'), unit_name: fd.get('unit'),
                     buy_rate: parseFloat(fd.get('rate')), sell_rate: parseFloat(fd.get('rate')) * 1.1,
-                    reserve: 0, min_limit: 1, max_limit: 10000,
+                    reserve: 0, 
+                    min_limit: parseFloat(fd.get('min')), 
+                    max_limit: parseFloat(fd.get('max')),
                     user_input_label: fd.get('label'), payment_details: fd.get('payment'), color: "bg-slate-500"
                 };
-                setServices([...services, newService]); setShowAddMethodForm(false);
-                addToast("Method Added!", "success");
+
+                if (editingMethod) {
+                    // Update Existing
+                    setServices(services.map(s => s.id === editingMethod.id ? { ...s, ...methodData, id: s.id, reserve: s.reserve } : s));
+                    setEditingMethod(null);
+                    addToast("Method Updated!", "success");
+                } else {
+                    // Add New
+                    setServices([...services, { ...methodData, id: Date.now() }]);
+                    addToast("Method Added!", "success");
+                }
+                setShowAddMethodForm(false);
+            };
+
+            const startEditMethod = (method) => {
+                setEditingMethod(method);
+                setShowAddMethodForm(true);
             };
 
             const handleOrderAction = (id, action, data = null) => {
@@ -284,7 +335,7 @@
                     {/* Toasts */}
                     <div className="z-[100] fixed top-4 right-4 space-y-2">
                         {toasts.map(t => (
-                            <div key={t.id} className={`flex items-center gap-2 px-4 py-3 rounded-lg shadow-xl animate-fade-in ${t.type === 'success' ? 'bg-green-600 text-white' : 'bg-red-600 text-white'}`}>
+                            <div key={t.id} className={`flex items-center gap-2 px-4 py-3 rounded-lg shadow-xl animate-fade-in ${t.type === 'success' ? 'bg-green-600 text-white' : t.type === 'error' ? 'bg-red-600 text-white' : 'bg-yellow-500 text-white'}`}>
                                 <span>{t.msg}</span>
                                 <button onClick={() => removeToast(t.id)}><X size={14}/></button>
                             </div>
@@ -340,7 +391,10 @@
                                             {exchangeStep === 1 ? (
                                                 <div className="space-y-4 animate-fade-in">
                                                     <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
-                                                        <div className="flex justify-between text-xs font-bold uppercase text-slate-500 mb-2"><span>{t.send}</span><span>Reserve: {sendService.reserve}</span></div>
+                                                        <div className="flex justify-between text-xs font-bold uppercase text-slate-500 mb-2">
+                                                            <span>{t.send}</span>
+                                                            <span className="text-indigo-600">Min: {sendService.min_limit} | Max: {sendService.max_limit}</span>
+                                                        </div>
                                                         <div className="flex gap-2">
                                                             <select className="bg-transparent font-bold w-1/3 outline-none" value={sendId} onChange={e=>{setSendId(e.target.value);setSendAmount('');setReceiveAmount('')}}>{services.map(s=><option key={s.id} value={s.id}>{s.name}</option>)}</select>
                                                             <input type="number" placeholder="0.00" className="w-2/3 bg-transparent text-right font-mono text-xl outline-none" value={sendAmount} onChange={e=>handleSendAmountChange(e.target.value)}/>
@@ -356,23 +410,33 @@
                                                     </div>
                                                     <div className="p-4 rounded-xl border border-indigo-200 bg-indigo-50 dark:bg-indigo-900/20">
                                                         <label className="block text-xs font-bold text-indigo-600 mb-1">{receiveService.user_input_label} *</label>
-                                                        <input type="text" className="w-full bg-transparent outline-none font-medium" placeholder="Type here..." value={userInput} onChange={e=>setUserInput(e.target.value)}/>
+                                                        <input type="text" className="w-full bg-transparent outline-none font-medium" placeholder={receiveService.type === 'account' ? 'Your Telegram User ID/Link' : 'e.g. 017...'} value={userInput} onChange={e=>setUserInput(e.target.value)}/>
                                                     </div>
-                                                    <button onClick={()=>{if(!sendAmount||!userInput)return addToast("Fill all fields","error"); setExchangeStep(2)}} className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-xl shadow-lg transition">{t.exchange_btn}</button>
+                                                    <button onClick={handleNextStep} className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-xl shadow-lg transition">{t.exchange_btn}</button>
                                                 </div>
                                             ) : (
                                                 <div className="space-y-4 animate-fade-in">
-                                                    <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-xl text-yellow-800">
-                                                        <h4 className="font-bold flex gap-2 items-center mb-2"><Wallet size={16}/> {t.pay_instruction}</h4>
+                                                    <div className={`bg-yellow-50 border border-yellow-200 p-4 rounded-xl text-yellow-800 ${sendService.type !== 'currency' ? 'bg-blue-50 border-blue-200 text-blue-800' : ''}`}>
+                                                        <h4 className="font-bold flex gap-2 items-center mb-2">
+                                                            {sendService.type === 'currency' ? <Wallet size={16}/> : <FileText size={16}/>} 
+                                                            {sendService.type === 'currency' ? t.pay_instruction_money : t.pay_instruction_account}
+                                                        </h4>
                                                         <div className="bg-white p-2 rounded border border-yellow-100 font-mono text-sm flex justify-between items-center">
                                                             <span>{sendService.payment_details}</span>
                                                             <button onClick={()=>navigator.clipboard.writeText(sendService.payment_details)}><Copy size={14}/></button>
                                                         </div>
-                                                        <p className="text-xs mt-2">Send exactly <b>{sendAmount} {sendService.unit_name}</b> here.</p>
+                                                        <p className="text-xs mt-2">
+                                                            {sendService.type === 'currency' 
+                                                                ? <span>Send exactly <b>{sendAmount} {sendService.unit_name}</b> here.</span>
+                                                                : <span>Send <b>{sendAmount} Stars/Items</b> to this ID.</span>
+                                                            }
+                                                        </p>
                                                     </div>
                                                     <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-700">
-                                                        <label className="block text-xs font-bold text-slate-500 mb-1">{t.trx_label} / {t.product_label} *</label>
-                                                        <input type="text" className="w-full bg-transparent outline-none" placeholder="Enter transaction info..." value={trxInput} onChange={e=>setTrxInput(e.target.value)}/>
+                                                        <label className="block text-xs font-bold text-slate-500 mb-1">
+                                                            {sendService.type === 'currency' ? t.trx_label_money : t.trx_label_account} *
+                                                        </label>
+                                                        <input type="text" className="w-full bg-transparent outline-none" placeholder={sendService.type === 'currency' ? "e.g. 8HG7..." : "e.g. My ID is @user123"} value={trxInput} onChange={e=>setTrxInput(e.target.value)}/>
                                                     </div>
                                                     <div className="flex gap-3">
                                                         <button onClick={()=>setExchangeStep(1)} className="w-1/3 bg-slate-200 text-slate-700 font-bold py-3 rounded-xl">Back</button>
@@ -478,8 +542,8 @@
                                                         </div>
                                                     </div>
                                                     <div className="bg-slate-50 dark:bg-slate-900 p-2 rounded text-xs mb-2">
-                                                        <div><b>User:</b> {o.userData}</div>
-                                                        <div><b>Proof:</b> {o.trxId}</div>
+                                                        <div><b>User Addr (Send To):</b> {o.userData}</div>
+                                                        <div><b>User Proof (Sent From):</b> {o.trxId}</div>
                                                     </div>
                                                     {o.status === 'pending' && (
                                                         <div className="flex gap-2">
@@ -494,28 +558,45 @@
                                     {adminTab === 'methods' && (
                                         <div className="space-y-4">
                                             {services.map(s => (
-                                                <div key={s.id} className="p-4 border rounded-xl flex justify-between items-center bg-white dark:bg-slate-800 dark:border-slate-700">
-                                                    <div>
+                                                <div key={s.id} className="p-4 border rounded-xl bg-white dark:bg-slate-800 dark:border-slate-700">
+                                                    <div className="flex justify-between items-center mb-1">
                                                         <div className="font-bold">{s.name} <span className="text-xs opacity-60">({s.type})</span></div>
-                                                        <div className="text-xs opacity-60">Buy: {s.buy_rate} | Sell: {s.sell_rate} | Reserve: {s.reserve}</div>
+                                                        <div className="flex gap-2">
+                                                            <button onClick={() => startEditMethod(s)} className="text-blue-500 hover:text-blue-700"><Edit size={16}/></button>
+                                                            <button onClick={()=>{if(confirm('Delete?')) setServices(services.filter(x=>x.id!==s.id))}} className="text-red-500 hover:text-red-700"><Trash2 size={16}/></button>
+                                                        </div>
                                                     </div>
-                                                    <button onClick={()=>{if(confirm('Delete?')) setServices(services.filter(x=>x.id!==s.id))}} className="text-red-500"><Trash2 size={16}/></button>
+                                                    <div className="text-xs opacity-60 grid grid-cols-2 gap-2">
+                                                        <div>Buy: {s.buy_rate} | Sell: {s.sell_rate}</div>
+                                                        <div>Limit: {s.min_limit} - {s.max_limit}</div>
+                                                    </div>
                                                 </div>
                                             ))}
-                                            <div className="border-2 border-dashed p-4 rounded-xl text-center cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800" onClick={()=>setShowAddMethodForm(!showAddMethodForm)}>
+                                            <div className="border-2 border-dashed p-4 rounded-xl text-center cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800" onClick={()=>{setEditingMethod(null); setShowAddMethodForm(!showAddMethodForm)}}>
                                                 <span className="font-bold text-indigo-500">+ Add Method</span>
                                             </div>
                                             {showAddMethodForm && (
                                                 <form onSubmit={handleAddService} className="p-4 border rounded-xl space-y-3 bg-white dark:bg-slate-800">
-                                                    <input name="name" placeholder="Name" required className="w-full p-2 border rounded text-sm"/>
+                                                    <h4 className="font-bold text-sm text-indigo-600">{editingMethod ? 'Update Method' : 'New Method'}</h4>
+                                                    <input name="name" defaultValue={editingMethod?.name} placeholder="Name" required className="w-full p-2 border rounded text-sm"/>
                                                     <div className="grid grid-cols-2 gap-2">
-                                                        <select name="type" className="p-2 border rounded text-sm"><option value="currency">Currency</option><option value="account">Account</option></select>
-                                                        <input name="unit" placeholder="Unit" required className="p-2 border rounded text-sm"/>
+                                                        <select name="type" defaultValue={editingMethod?.type} className="p-2 border rounded text-sm"><option value="currency">Currency</option><option value="account">Account</option></select>
+                                                        <input name="unit" defaultValue={editingMethod?.unit_name} placeholder="Unit" required className="p-2 border rounded text-sm"/>
                                                     </div>
-                                                    <input name="rate" type="number" placeholder="Rate" required className="w-full p-2 border rounded text-sm"/>
-                                                    <input name="label" placeholder="User Input Label" required className="w-full p-2 border rounded text-sm"/>
-                                                    <input name="payment" placeholder="Our Payment Details" required className="w-full p-2 border rounded text-sm"/>
-                                                    <button className="w-full bg-green-600 text-white py-2 rounded text-sm font-bold">Save Method</button>
+                                                    <input name="rate" defaultValue={editingMethod?.buy_rate} type="number" placeholder="Rate" required className="w-full p-2 border rounded text-sm"/>
+                                                    
+                                                    <div className="grid grid-cols-2 gap-2">
+                                                        <input name="min" defaultValue={editingMethod?.min_limit} type="number" placeholder="Min Limit" required className="p-2 border rounded text-sm"/>
+                                                        <input name="max" defaultValue={editingMethod?.max_limit} type="number" placeholder="Max Limit" required className="p-2 border rounded text-sm"/>
+                                                    </div>
+
+                                                    <input name="label" defaultValue={editingMethod?.user_input_label} placeholder="User Input Label (Destination)" required className="w-full p-2 border rounded text-sm"/>
+                                                    <input name="payment" defaultValue={editingMethod?.payment_details} placeholder="Payment/Account Details (Source)" required className="w-full p-2 border rounded text-sm"/>
+                                                    
+                                                    <div className="flex gap-2">
+                                                        <button type="button" onClick={()=>{setShowAddMethodForm(false); setEditingMethod(null)}} className="flex-1 bg-gray-300 text-gray-800 py-2 rounded text-sm font-bold">Cancel</button>
+                                                        <button type="submit" className="flex-1 bg-green-600 text-white py-2 rounded text-sm font-bold">{editingMethod ? 'Update' : 'Save'}</button>
+                                                    </div>
                                                 </form>
                                             )}
                                         </div>
