@@ -249,9 +249,14 @@
                         fb.onSnapshot(methodsCol, (snap) => {
                             const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                             // If empty, populate defaults (One time check)
+                            // IMPORTANT: This check ensures we don't spam writes, but tries to init if empty
                             if (list.length === 0 && !localStorage.getItem(`init_methods_${appId}`)) {
-                                defaultServices.forEach(s => fb.addDoc(methodsCol, s));
-                                localStorage.setItem(`init_methods_${appId}`, 'true');
+                                console.log("Attempting to initialize default methods...");
+                                const promises = defaultServices.map(s => fb.addDoc(methodsCol, s));
+                                Promise.all(promises).then(() => {
+                                    localStorage.setItem(`init_methods_${appId}`, 'true');
+                                    console.log("Defaults initialized");
+                                }).catch(e => console.error("Auto-init failed (likely rules):", e));
                             } else {
                                 setServices(list.sort((a,b) => a.id - b.id)); // Simple sort
                                 if(list.length > 0 && !sendId) {
@@ -261,7 +266,7 @@
                             }
                         }, (err) => {
                             console.error("Method Sync Error:", err);
-                            addToast("Sync Failed (Check Rules)", "error");
+                            addToast(`Sync Failed: ${err.code}`, "error");
                         });
 
                         // Sync Orders
@@ -277,7 +282,8 @@
                             if (snap.exists()) setNotice(snap.data().notice);
                             else {
                                 setNotice("🌟 Welcome to Fast Sell! Buy/Sell Telegram Stars instantly.");
-                                fb.setDoc(noticeDoc, { notice: "🌟 Welcome to Fast Sell! Buy/Sell Telegram Stars instantly." });
+                                // Try to set default, but catch error if rules block it
+                                fb.setDoc(noticeDoc, { notice: "🌟 Welcome to Fast Sell! Buy/Sell Telegram Stars instantly." }).catch(e => console.warn("Notice init failed", e));
                             }
                             setLoading(false);
                         }, (err) => {
@@ -288,7 +294,7 @@
                     } catch (e) {
                         console.error("Firebase Init Error:", e);
                         setLoading(false);
-                        addToast("Database Connection Failed (Check Console)", "error");
+                        addToast(`Init Failed: ${e.code || e.message}`, "error");
                     }
                 };
                 initFirebase();
@@ -303,7 +309,7 @@
             const addToast = (msg, type = 'success') => {
                 const id = Date.now();
                 setToasts(prev => [...prev, { id, msg, type }]);
-                setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 3000);
+                setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 5000);
             };
             const removeToast = (id) => setToasts(prev => prev.filter(t => t.id !== id));
             const toggleTheme = () => setDarkMode(!darkMode);
@@ -338,8 +344,9 @@
             };
 
             const handleSubmitOrder = async () => {
-                if(!user) return;
+                if(!user) { addToast("Login required (Auth is loading...)", "error"); return; }
                 if(!trxInput || !userInput) { addToast("All fields required", "error"); return; }
+                if(!sendService.id || !receiveService.id) { addToast("System Error: No payment methods loaded. Contact Admin.", "error"); return; }
                 
                 const newOrder = {
                     orderId: `ORD-${Math.floor(Math.random() * 9000) + 1000}`,
@@ -356,12 +363,18 @@
                     addToast("Order Placed!", "success");
                 } catch(e) {
                     console.error(e);
-                    addToast("Failed to place order (Auth/Rules Error)", "error");
+                    // Detailed Error for User
+                    let msg = "Failed to place order.";
+                    if (e.code === 'permission-denied') msg += " (Firebase Rules Blocked: Check Console)";
+                    else if (e.code === 'invalid-argument') msg += " (Invalid Data: Check Console)";
+                    else msg += ` (${e.code || e.message})`;
+                    addToast(msg, "error");
                 }
             };
 
             const handleNextStep = () => {
                 if(!sendAmount || !userInput) { addToast("Fill all fields", "error"); return; }
+                if(!sendService.id) { addToast("Service loading... please wait", "error"); return; }
                 
                 // Limit Validation
                 if(parseFloat(sendAmount) < sendService.min_limit) {
@@ -387,7 +400,7 @@
             // ADD / UPDATE METHOD
             const handleAddService = async (e) => {
                 e.preventDefault();
-                if(!user) return;
+                if(!user) { addToast("Not authenticated", "error"); return; }
                 const fd = new FormData(e.target);
                 const methodData = {
                     name: fd.get('name'), type: fd.get('type'), unit_name: fd.get('unit'),
@@ -409,11 +422,25 @@
                         await fb.addDoc(fb.collection(db, 'artifacts', appId, 'public', 'data', 'methods'), methodData);
                         addToast("Method Added!", "success");
                     }
+                    setShowAddMethodForm(false);
                 } catch(e) {
                     console.error(e);
-                    addToast("Action failed (Auth/Rules Error)", "error");
+                    addToast(`Action failed: ${e.code || e.message}`, "error");
                 }
-                setShowAddMethodForm(false);
+            };
+            
+            // RESET DEFAULTS
+            const handleResetDefaults = async () => {
+                if(!user) return;
+                const fb = window.firebaseModules;
+                const methodsCol = fb.collection(db, 'artifacts', appId, 'public', 'data', 'methods');
+                try {
+                    const promises = defaultServices.map(s => fb.addDoc(methodsCol, s));
+                    await Promise.all(promises);
+                    addToast("Default methods added!", "success");
+                } catch(e) {
+                     addToast(`Reset Failed: ${e.code}`, "error");
+                }
             };
 
             const startEditMethod = (method) => {
@@ -434,7 +461,7 @@
                     
                     if(action === 'deliver' || action === 'cancel') addToast(`Order ${action}ed!`, action === 'cancel' ? 'error' : 'success');
                 } catch(e) {
-                    addToast("Failed to update order", "error");
+                    addToast(`Update Failed: ${e.code}`, "error");
                 }
             };
             
@@ -445,7 +472,7 @@
                      await fb.setDoc(fb.doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'global'), { notice });
                      addToast("Notice saved!", "success");
                  } catch(e) {
-                     addToast("Failed to save", "error");
+                     addToast(`Save Failed: ${e.code}`, "error");
                  }
             }
 
@@ -456,7 +483,7 @@
                     await fb.deleteDoc(fb.doc(db, 'artifacts', appId, 'public', 'data', 'methods', id));
                     addToast("Method deleted", "success");
                 } catch(e) {
-                    addToast("Failed to delete", "error");
+                    addToast(`Delete Failed: ${e.code}`, "error");
                 }
             }
 
@@ -692,6 +719,9 @@
                                     )}
                                     {adminTab === 'methods' && (
                                         <div className="space-y-4">
+                                            <div className="flex justify-end mb-2">
+                                                 <button onClick={handleResetDefaults} className="text-xs text-orange-500 underline">Reset Defaults</button>
+                                            </div>
                                             {services.map(s => (
                                                 <div key={s.id} className="p-4 border rounded-xl bg-white dark:bg-slate-800 dark:border-slate-700">
                                                     <div className="flex justify-between items-center mb-1">
