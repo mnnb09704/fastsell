@@ -76,8 +76,7 @@
 
         // --- FIREBASE INIT ---
         let db, auth;
-        // আমরা এখন একটি ফিক্সড অ্যাপ আইডি ব্যবহার করব যাতে সব ডিভাইস একই ডাটা পায়
-        const appId = 'fast-sell-live'; 
+        let appId = 'default-app-id'; // Will be updated
         
         // Ensure modules are loaded
         const waitForFirebase = () => new Promise(resolve => {
@@ -207,23 +206,41 @@
                     try {
                         const fb = await waitForFirebase();
                         
-                        // আপনার দেওয়া কনফিগারেশন
-                        const firebaseConfig = {
-                            apiKey: "AIzaSyCA4XZ7psdNgAnBAg4yod5Rut4nKnSEuYA",
-                            authDomain: "exchange-7bf78.firebaseapp.com",
-                            databaseURL: "https://exchange-7bf78-default-rtdb.firebaseio.com",
-                            projectId: "exchange-7bf78",
-                            storageBucket: "exchange-7bf78.firebasestorage.app",
-                            messagingSenderId: "536936205976",
-                            appId: "1:536936205976:web:9ca360bdbd620a981ccaed"
-                        };
+                        let firebaseConfig;
+                        let app;
 
-                        const app = fb.initializeApp(firebaseConfig);
-                        auth = fb.getAuth(app);
-                        db = fb.getFirestore(app);
+                        // 1. TRY TO USE ENVIRONMENT CONFIG (Canvas Friendly)
+                        if (typeof __firebase_config !== 'undefined' && __firebase_config) {
+                             firebaseConfig = JSON.parse(__firebase_config);
+                             app = fb.initializeApp(firebaseConfig);
+                             auth = fb.getAuth(app);
+                             db = fb.getFirestore(app);
+                             if (typeof __app_id !== 'undefined') appId = __app_id;
 
-                        // লগিন (Anonymous) যাতে ডাটাবেস এক্সেস পাওয়া যায়
-                        await fb.signInAnonymously(auth);
+                             // Auth
+                             if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                                 await fb.signInWithCustomToken(auth, __initial_auth_token);
+                             } else {
+                                 await fb.signInAnonymously(auth);
+                             }
+                        } 
+                        // 2. FALLBACK TO USER CONFIG (Local Friendly)
+                        else {
+                            firebaseConfig = {
+                                apiKey: "AIzaSyCA4XZ7psdNgAnBAg4yod5Rut4nKnSEuYA",
+                                authDomain: "exchange-7bf78.firebaseapp.com",
+                                databaseURL: "https://exchange-7bf78-default-rtdb.firebaseio.com",
+                                projectId: "exchange-7bf78",
+                                storageBucket: "exchange-7bf78.firebasestorage.app",
+                                messagingSenderId: "536936205976",
+                                appId: "1:536936205976:web:9ca360bdbd620a981ccaed"
+                            };
+                            appId = 'fast-sell-live';
+                            app = fb.initializeApp(firebaseConfig);
+                            auth = fb.getAuth(app);
+                            db = fb.getFirestore(app);
+                            await fb.signInAnonymously(auth);
+                        }
                         
                         fb.onAuthStateChanged(auth, (u) => setUser(u));
 
@@ -232,9 +249,9 @@
                         fb.onSnapshot(methodsCol, (snap) => {
                             const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                             // If empty, populate defaults (One time check)
-                            if (list.length === 0 && !localStorage.getItem('init_methods')) {
+                            if (list.length === 0 && !localStorage.getItem(`init_methods_${appId}`)) {
                                 defaultServices.forEach(s => fb.addDoc(methodsCol, s));
-                                localStorage.setItem('init_methods', 'true');
+                                localStorage.setItem(`init_methods_${appId}`, 'true');
                             } else {
                                 setServices(list.sort((a,b) => a.id - b.id)); // Simple sort
                                 if(list.length > 0 && !sendId) {
@@ -242,15 +259,17 @@
                                     setReceiveId(list[2]?.id || list[0].id);
                                 }
                             }
+                        }, (err) => {
+                            console.error("Method Sync Error:", err);
+                            addToast("Sync Failed (Check Rules)", "error");
                         });
 
                         // Sync Orders
                         const ordersCol = fb.collection(db, 'artifacts', appId, 'public', 'data', 'orders');
                         fb.onSnapshot(ordersCol, (snap) => {
                             const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                            // Sort by date desc usually better, but simplified here
                             setOrders(list.sort((a,b) => new Date(b.date) - new Date(a.date)));
-                        });
+                        }, (err) => console.error("Orders Sync Error", err));
 
                         // Sync Notice
                         const noticeDoc = fb.doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'global');
@@ -261,12 +280,15 @@
                                 fb.setDoc(noticeDoc, { notice: "🌟 Welcome to Fast Sell! Buy/Sell Telegram Stars instantly." });
                             }
                             setLoading(false);
+                        }, (err) => {
+                            console.error("Notice Sync Error", err);
+                            setLoading(false);
                         });
 
                     } catch (e) {
                         console.error("Firebase Init Error:", e);
                         setLoading(false);
-                        addToast("Database Connection Failed", "error");
+                        addToast("Database Connection Failed (Check Console)", "error");
                     }
                 };
                 initFirebase();
@@ -333,7 +355,8 @@
                     setView('dashboard'); setUserInput(''); setTrxInput(''); setSendAmount(''); setReceiveAmount(''); setExchangeStep(1);
                     addToast("Order Placed!", "success");
                 } catch(e) {
-                    addToast("Failed to place order", "error");
+                    console.error(e);
+                    addToast("Failed to place order (Auth/Rules Error)", "error");
                 }
             };
 
@@ -388,7 +411,7 @@
                     }
                 } catch(e) {
                     console.error(e);
-                    addToast("Action failed", "error");
+                    addToast("Action failed (Auth/Rules Error)", "error");
                 }
                 setShowAddMethodForm(false);
             };
