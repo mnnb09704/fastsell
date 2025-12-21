@@ -15,6 +15,16 @@
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, setDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Expose to window for React
+        window.firebaseModules = { initializeApp, getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken, getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, setDoc, query, orderBy };
+    </script>
+    
     <!-- Font -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 
@@ -64,6 +74,20 @@
     <script type="text/babel">
         const { useState, useEffect } = React;
 
+        // --- FIREBASE INIT ---
+        let db, auth;
+        // আমরা এখন একটি ফিক্সড অ্যাপ আইডি ব্যবহার করব যাতে সব ডিভাইস একই ডাটা পায়
+        const appId = 'fast-sell-live'; 
+        
+        // Ensure modules are loaded
+        const waitForFirebase = () => new Promise(resolve => {
+            const check = () => {
+                if (window.firebaseModules) resolve(window.firebaseModules);
+                else setTimeout(check, 100);
+            };
+            check();
+        });
+
         // --- INTERNAL ICON SYSTEM ---
         const IconBase = ({ children, size = 24, className = "" }) => (
             <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>{children}</svg>
@@ -107,9 +131,9 @@
         // --- CLEAN INITIAL DATA ---
         // Telegram Stars payment_details -> Admin UID
         const defaultServices = [
-            { id: 1, name: "bKash Personal", type: "currency", unit_name: "BDT", buy_rate: 1, sell_rate: 1, reserve: 50000, min_limit: 50, max_limit: 25000, user_input_label: "Your bKash Number", payment_details: "01722051341", color: "bg-pink-600" },
-            { id: 2, name: "Nagad Personal", type: "currency", unit_name: "BDT", buy_rate: 1, sell_rate: 1, reserve: 50000, min_limit: 50, max_limit: 25000, user_input_label: "Your Nagad Number", payment_details: "01722051341", color: "bg-orange-500" },
-            { id: 3, name: "Telegram Stars", type: "account", unit_name: "Stars", buy_rate: 2.20, sell_rate: 2.80, reserve: 10000, min_limit: 15, max_limit: 5000, user_input_label: "Your Telegram User ID/Link", payment_details: "@starbuyerbd", color: "bg-blue-500" }
+            { id: "1", name: "bKash Personal", type: "currency", unit_name: "BDT", buy_rate: 1, sell_rate: 1, reserve: 50000, min_limit: 50, max_limit: 25000, user_input_label: "Your bKash Number", payment_details: "01722051341", color: "bg-pink-600" },
+            { id: "2", name: "Nagad Personal", type: "currency", unit_name: "BDT", buy_rate: 1, sell_rate: 1, reserve: 50000, min_limit: 50, max_limit: 25000, user_input_label: "Your Nagad Number", payment_details: "01722051341", color: "bg-orange-500" },
+            { id: "3", name: "Telegram Stars", type: "account", unit_name: "Stars", buy_rate: 2.20, sell_rate: 2.80, reserve: 10000, min_limit: 15, max_limit: 5000, user_input_label: "Your Telegram User ID/Link", payment_details: "@starbuyerbd", color: "bg-blue-500" }
         ];
 
         const translations = {
@@ -146,36 +170,11 @@
         // --- APP COMPONENT ---
         function App() {
             // --- STATE MANAGEMENT ---
-            const [services, setServices] = useState(() => {
-                const saved = localStorage.getItem('fs_services_v2'); // Changed key to force update
-                return saved ? JSON.parse(saved) : defaultServices;
-            });
-
-            const [orders, setOrders] = useState(() => {
-                const saved = localStorage.getItem('fs_orders_v2'); // Changed key
-                return saved ? JSON.parse(saved) : [];
-            });
-
-            const [notice, setNotice] = useState(() => {
-                return localStorage.getItem('fs_notice_v2') || "🌟 Welcome to Fast Sell! Buy/Sell Telegram Stars instantly."; // Changed key
-            });
-
-            useEffect(() => { localStorage.setItem('fs_services_v2', JSON.stringify(services)); }, [services]);
-            useEffect(() => { localStorage.setItem('fs_orders_v2', JSON.stringify(orders)); }, [orders]);
-            useEffect(() => { localStorage.setItem('fs_notice_v2', notice); }, [notice]);
-
-            useEffect(() => {
-                const handleStorageChange = () => {
-                    const savedServices = localStorage.getItem('fs_services_v2');
-                    const savedOrders = localStorage.getItem('fs_orders_v2');
-                    const savedNotice = localStorage.getItem('fs_notice_v2');
-                    if (savedServices) setServices(JSON.parse(savedServices));
-                    if (savedOrders) setOrders(JSON.parse(savedOrders));
-                    if (savedNotice) setNotice(savedNotice);
-                };
-                window.addEventListener('storage', handleStorageChange);
-                return () => window.removeEventListener('storage', handleStorageChange);
-            }, []);
+            const [services, setServices] = useState([]);
+            const [orders, setOrders] = useState([]);
+            const [notice, setNotice] = useState("Loading...");
+            const [user, setUser] = useState(null);
+            const [loading, setLoading] = useState(true);
 
             // UI States
             const [darkMode, setDarkMode] = useState(false);
@@ -189,8 +188,8 @@
 
             // Exchange States
             const [exchangeStep, setExchangeStep] = useState(1);
-            const [sendId, setSendId] = useState(services[0]?.id || 1);
-            const [receiveId, setReceiveId] = useState(services[2]?.id || 3); 
+            const [sendId, setSendId] = useState("");
+            const [receiveId, setReceiveId] = useState(""); 
             const [sendAmount, setSendAmount] = useState('');
             const [receiveAmount, setReceiveAmount] = useState('');
             const [userInput, setUserInput] = useState(''); 
@@ -200,11 +199,82 @@
             const [adminTab, setAdminTab] = useState('dashboard');
             const [showAddMethodForm, setShowAddMethodForm] = useState(false);
             const [showManualOrderForm, setShowManualOrderForm] = useState(false);
-            const [editingMethod, setEditingMethod] = useState(null); // New state for editing
+            const [editingMethod, setEditingMethod] = useState(null);
+
+            // --- FIREBASE INTEGRATION ---
+            useEffect(() => {
+                const initFirebase = async () => {
+                    try {
+                        const fb = await waitForFirebase();
+                        
+                        // আপনার দেওয়া কনফিগারেশন
+                        const firebaseConfig = {
+                            apiKey: "AIzaSyCA4XZ7psdNgAnBAg4yod5Rut4nKnSEuYA",
+                            authDomain: "exchange-7bf78.firebaseapp.com",
+                            databaseURL: "https://exchange-7bf78-default-rtdb.firebaseio.com",
+                            projectId: "exchange-7bf78",
+                            storageBucket: "exchange-7bf78.firebasestorage.app",
+                            messagingSenderId: "536936205976",
+                            appId: "1:536936205976:web:9ca360bdbd620a981ccaed"
+                        };
+
+                        const app = fb.initializeApp(firebaseConfig);
+                        auth = fb.getAuth(app);
+                        db = fb.getFirestore(app);
+
+                        // লগিন (Anonymous) যাতে ডাটাবেস এক্সেস পাওয়া যায়
+                        await fb.signInAnonymously(auth);
+                        
+                        fb.onAuthStateChanged(auth, (u) => setUser(u));
+
+                        // Sync Methods
+                        const methodsCol = fb.collection(db, 'artifacts', appId, 'public', 'data', 'methods');
+                        fb.onSnapshot(methodsCol, (snap) => {
+                            const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                            // If empty, populate defaults (One time check)
+                            if (list.length === 0 && !localStorage.getItem('init_methods')) {
+                                defaultServices.forEach(s => fb.addDoc(methodsCol, s));
+                                localStorage.setItem('init_methods', 'true');
+                            } else {
+                                setServices(list.sort((a,b) => a.id - b.id)); // Simple sort
+                                if(list.length > 0 && !sendId) {
+                                    setSendId(list[0].id);
+                                    setReceiveId(list[2]?.id || list[0].id);
+                                }
+                            }
+                        });
+
+                        // Sync Orders
+                        const ordersCol = fb.collection(db, 'artifacts', appId, 'public', 'data', 'orders');
+                        fb.onSnapshot(ordersCol, (snap) => {
+                            const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                            // Sort by date desc usually better, but simplified here
+                            setOrders(list.sort((a,b) => new Date(b.date) - new Date(a.date)));
+                        });
+
+                        // Sync Notice
+                        const noticeDoc = fb.doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'global');
+                        fb.onSnapshot(noticeDoc, (snap) => {
+                            if (snap.exists()) setNotice(snap.data().notice);
+                            else {
+                                setNotice("🌟 Welcome to Fast Sell! Buy/Sell Telegram Stars instantly.");
+                                fb.setDoc(noticeDoc, { notice: "🌟 Welcome to Fast Sell! Buy/Sell Telegram Stars instantly." });
+                            }
+                            setLoading(false);
+                        });
+
+                    } catch (e) {
+                        console.error("Firebase Init Error:", e);
+                        setLoading(false);
+                        addToast("Database Connection Failed", "error");
+                    }
+                };
+                initFirebase();
+            }, []);
 
             const t = translations[lang];
-            const sendService = services.find(s => s.id === parseInt(sendId)) || services[0];
-            const receiveService = services.find(s => s.id === parseInt(receiveId)) || services[0];
+            const sendService = services.find(s => s.id === sendId) || services[0] || {};
+            const receiveService = services.find(s => s.id === receiveId) || services[0] || {};
             const adminWhatsApp = "8801722051341";
 
             // --- FUNCTIONS ---
@@ -229,8 +299,8 @@
             const handleSendAmountChange = (val) => {
                 setSendAmount(val);
                 if (!val || isNaN(val)) { setReceiveAmount(''); return; }
-                const baseValue = parseFloat(val) * sendService.buy_rate; 
-                let estimatedReceive = baseValue / receiveService.sell_rate;
+                const baseValue = parseFloat(val) * (sendService.buy_rate || 0); 
+                let estimatedReceive = baseValue / (receiveService.sell_rate || 1);
                 if (receiveService.type !== 'currency') estimatedReceive = Math.floor(estimatedReceive); 
                 else estimatedReceive = parseFloat(estimatedReceive.toFixed(4));
                 setReceiveAmount(estimatedReceive);
@@ -240,23 +310,31 @@
                 if (receiveService.type !== 'currency' && val.includes('.')) return;
                 setReceiveAmount(val);
                 if (!val || isNaN(val)) { setSendAmount(''); return; }
-                const requiredBase = parseFloat(val) * receiveService.sell_rate;
-                let requiredSend = requiredBase / sendService.buy_rate;
+                const requiredBase = parseFloat(val) * (receiveService.sell_rate || 0);
+                let requiredSend = requiredBase / (sendService.buy_rate || 1);
                 setSendAmount(parseFloat(requiredSend.toFixed(2)));
             };
 
-            const handleSubmitOrder = () => {
+            const handleSubmitOrder = async () => {
+                if(!user) return;
                 if(!trxInput || !userInput) { addToast("All fields required", "error"); return; }
+                
                 const newOrder = {
-                    id: `ORD-${Math.floor(Math.random() * 9000) + 1000}`,
+                    orderId: `ORD-${Math.floor(Math.random() * 9000) + 1000}`,
                     sendServiceId: sendService.id, receiveServiceId: receiveService.id,
                     sendAmount: sendAmount, receiveAmount: receiveAmount,
                     userData: userInput, trxId: trxInput, status: "pending", deliveryData: "",
                     date: new Date().toLocaleString()
                 };
-                setOrders([newOrder, ...orders]);
-                setView('dashboard'); setUserInput(''); setTrxInput(''); setSendAmount(''); setReceiveAmount(''); setExchangeStep(1);
-                addToast("Order Placed!", "success");
+
+                try {
+                    const fb = window.firebaseModules;
+                    await fb.addDoc(fb.collection(db, 'artifacts', appId, 'public', 'data', 'orders'), newOrder);
+                    setView('dashboard'); setUserInput(''); setTrxInput(''); setSendAmount(''); setReceiveAmount(''); setExchangeStep(1);
+                    addToast("Order Placed!", "success");
+                } catch(e) {
+                    addToast("Failed to place order", "error");
+                }
             };
 
             const handleNextStep = () => {
@@ -273,7 +351,7 @@
                 }
 
                 // Binance Threshold Check
-                const isBinanceReceive = receiveService.name.toLowerCase().includes('binance') || receiveService.name.toLowerCase().includes('usdt');
+                const isBinanceReceive = receiveService.name?.toLowerCase().includes('binance') || receiveService.name?.toLowerCase().includes('usdt');
                 const valueInBDT = parseFloat(receiveAmount) * receiveService.sell_rate;
                 if (isBinanceReceive && valueInBDT < 1000) {
                     addToast(t.binance_warning, "warning");
@@ -284,8 +362,9 @@
             };
 
             // ADD / UPDATE METHOD
-            const handleAddService = (e) => {
+            const handleAddService = async (e) => {
                 e.preventDefault();
+                if(!user) return;
                 const fd = new FormData(e.target);
                 const methodData = {
                     name: fd.get('name'), type: fd.get('type'), unit_name: fd.get('unit'),
@@ -296,15 +375,20 @@
                     user_input_label: fd.get('label'), payment_details: fd.get('payment'), color: "bg-slate-500"
                 };
 
-                if (editingMethod) {
-                    // Update Existing
-                    setServices(services.map(s => s.id === editingMethod.id ? { ...s, ...methodData, id: s.id, reserve: s.reserve } : s));
-                    setEditingMethod(null);
-                    addToast("Method Updated!", "success");
-                } else {
-                    // Add New
-                    setServices([...services, { ...methodData, id: Date.now() }]);
-                    addToast("Method Added!", "success");
+                const fb = window.firebaseModules;
+                try {
+                    if (editingMethod) {
+                        const docRef = fb.doc(db, 'artifacts', appId, 'public', 'data', 'methods', editingMethod.id);
+                        await fb.updateDoc(docRef, methodData);
+                        setEditingMethod(null);
+                        addToast("Method Updated!", "success");
+                    } else {
+                        await fb.addDoc(fb.collection(db, 'artifacts', appId, 'public', 'data', 'methods'), methodData);
+                        addToast("Method Added!", "success");
+                    }
+                } catch(e) {
+                    console.error(e);
+                    addToast("Action failed", "error");
                 }
                 setShowAddMethodForm(false);
             };
@@ -314,19 +398,48 @@
                 setShowAddMethodForm(true);
             };
 
-            const handleOrderAction = (id, action, data = null) => {
-                setOrders(prev => prev.map(o => {
-                    if (o.id !== id) return o;
-                    if (action === 'deliver') return { ...o, status: 'completed', deliveryData: data };
-                    if (action === 'cancel') return { ...o, status: 'cancelled' };
-                    if (action === 'update_send') return { ...o, sendAmount: data };
-                    if (action === 'update_receive') return { ...o, receiveAmount: data };
-                    return o;
-                }));
-                if(action === 'deliver' || action === 'cancel') addToast(`Order ${action}ed!`, action === 'cancel' ? 'error' : 'success');
+            const handleOrderAction = async (id, action, data = null) => {
+                if(!user) return;
+                const fb = window.firebaseModules;
+                const docRef = fb.doc(db, 'artifacts', appId, 'public', 'data', 'orders', id);
+                
+                try {
+                    if (action === 'deliver') await fb.updateDoc(docRef, { status: 'completed', deliveryData: data });
+                    if (action === 'cancel') await fb.updateDoc(docRef, { status: 'cancelled' });
+                    if (action === 'update_send') await fb.updateDoc(docRef, { sendAmount: data });
+                    if (action === 'update_receive') await fb.updateDoc(docRef, { receiveAmount: data });
+                    
+                    if(action === 'deliver' || action === 'cancel') addToast(`Order ${action}ed!`, action === 'cancel' ? 'error' : 'success');
+                } catch(e) {
+                    addToast("Failed to update order", "error");
+                }
             };
+            
+            const handleSaveNotice = async () => {
+                 if(!user) return;
+                 const fb = window.firebaseModules;
+                 try {
+                     await fb.setDoc(fb.doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'global'), { notice });
+                     addToast("Notice saved!", "success");
+                 } catch(e) {
+                     addToast("Failed to save", "error");
+                 }
+            }
+
+            const deleteMethod = async (id) => {
+                if(!user || !confirm('Delete?')) return;
+                const fb = window.firebaseModules;
+                try {
+                    await fb.deleteDoc(fb.doc(db, 'artifacts', appId, 'public', 'data', 'methods', id));
+                    addToast("Method deleted", "success");
+                } catch(e) {
+                    addToast("Failed to delete", "error");
+                }
+            }
 
             const openWhatsApp = () => window.open(`https://wa.me/${adminWhatsApp}`, '_blank');
+            
+            if(loading) return <div className="loading">Connecting to Server...</div>;
 
             return (
                 <div className={`min-h-screen transition-colors duration-300 font-sans ${darkMode ? 'bg-slate-900 text-slate-100' : 'bg-slate-50 text-slate-800'}`}>
@@ -480,7 +593,7 @@
                                     {orders.length === 0 ? <p className="text-center opacity-50">No orders yet.</p> : orders.map(o => (
                                         <div key={o.id} className="p-4 border rounded-xl hover:shadow-md transition dark:border-slate-700">
                                             <div className="flex justify-between mb-2">
-                                                <span className="text-xs font-bold bg-slate-200 dark:bg-slate-700 px-2 py-1 rounded">{o.id}</span>
+                                                <span className="text-xs font-bold bg-slate-200 dark:bg-slate-700 px-2 py-1 rounded">{o.orderId}</span>
                                                 <span className={`text-xs font-bold px-2 py-1 rounded uppercase ${o.status==='completed'?'bg-green-100 text-green-700':o.status==='cancelled'?'bg-red-100 text-red-700':'bg-orange-100 text-orange-700'}`}>{o.status}</span>
                                             </div>
                                             <div className="font-bold flex items-center gap-2 text-sm">
@@ -522,7 +635,7 @@
                                             {orders.map(o => (
                                                 <div key={o.id} className={`p-4 rounded-xl border relative bg-white dark:bg-slate-800 ${o.status==='pending'?'border-orange-400':'dark:border-slate-700'}`}>
                                                     <div className="flex justify-between items-start mb-3">
-                                                        <div><span className="font-bold text-sm text-indigo-600">#{o.id}</span> <span className="text-xs opacity-50">{o.date}</span></div>
+                                                        <div><span className="font-bold text-sm text-indigo-600">#{o.orderId}</span> <span className="text-xs opacity-50">{o.date}</span></div>
                                                         <div className="flex gap-2">
                                                             {o.status==='pending' && <button onClick={()=>handleOrderAction(o.id,'cancel')} className="bg-red-100 text-red-600 px-2 py-1 rounded text-xs font-bold">Cancel</button>}
                                                             <span className="text-xs font-bold bg-slate-100 px-2 py-1 rounded uppercase">{o.status}</span>
@@ -562,7 +675,7 @@
                                                         <div className="font-bold">{s.name} <span className="text-xs opacity-60">({s.type})</span></div>
                                                         <div className="flex gap-2">
                                                             <button onClick={() => startEditMethod(s)} className="text-blue-500 hover:text-blue-700"><Edit size={16}/></button>
-                                                            <button onClick={()=>{if(confirm('Delete?')) setServices(services.filter(x=>x.id!==s.id))}} className="text-red-500 hover:text-red-700"><Trash2 size={16}/></button>
+                                                            <button onClick={()=>{deleteMethod(s.id)}} className="text-red-500 hover:text-red-700"><Trash2 size={16}/></button>
                                                         </div>
                                                     </div>
                                                     <div className="text-xs opacity-60 grid grid-cols-2 gap-2">
@@ -604,7 +717,7 @@
                                         <div className="p-6 border rounded-xl bg-white dark:bg-slate-800 dark:border-slate-700">
                                             <h3 className="font-bold mb-2">Website Notice</h3>
                                             <textarea className="w-full p-3 border rounded-lg text-sm mb-3 h-24 outline-none dark:bg-slate-900" value={notice} onChange={e=>setNotice(e.target.value)}></textarea>
-                                            <button className="bg-indigo-600 text-white px-6 py-2 rounded-lg font-bold text-sm">Save Notice</button>
+                                            <button onClick={handleSaveNotice} className="bg-indigo-600 text-white px-6 py-2 rounded-lg font-bold text-sm">Save Notice</button>
                                         </div>
                                     )}
                                 </div>
