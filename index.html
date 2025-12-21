@@ -148,28 +148,28 @@
         function App() {
             // --- STATE MANAGEMENT ---
             const [services, setServices] = useState(() => {
-                const saved = localStorage.getItem('fs_services');
+                const saved = localStorage.getItem('fs_services_v2'); // Changed key to force update
                 return saved ? JSON.parse(saved) : defaultServices;
             });
 
             const [orders, setOrders] = useState(() => {
-                const saved = localStorage.getItem('fs_orders');
+                const saved = localStorage.getItem('fs_orders_v2'); // Changed key
                 return saved ? JSON.parse(saved) : [];
             });
 
             const [notice, setNotice] = useState(() => {
-                return localStorage.getItem('fs_notice') || "🌟 Welcome to Fast Sell! Buy/Sell Telegram Stars instantly.";
+                return localStorage.getItem('fs_notice_v2') || "🌟 Welcome to Fast Sell! Buy/Sell Telegram Stars instantly."; // Changed key
             });
 
-            useEffect(() => { localStorage.setItem('fs_services', JSON.stringify(services)); }, [services]);
-            useEffect(() => { localStorage.setItem('fs_orders', JSON.stringify(orders)); }, [orders]);
-            useEffect(() => { localStorage.setItem('fs_notice', notice); }, [notice]);
+            useEffect(() => { localStorage.setItem('fs_services_v2', JSON.stringify(services)); }, [services]);
+            useEffect(() => { localStorage.setItem('fs_orders_v2', JSON.stringify(orders)); }, [orders]);
+            useEffect(() => { localStorage.setItem('fs_notice_v2', notice); }, [notice]);
 
             useEffect(() => {
                 const handleStorageChange = () => {
-                    const savedServices = localStorage.getItem('fs_services');
-                    const savedOrders = localStorage.getItem('fs_orders');
-                    const savedNotice = localStorage.getItem('fs_notice');
+                    const savedServices = localStorage.getItem('fs_services_v2');
+                    const savedOrders = localStorage.getItem('fs_orders_v2');
+                    const savedNotice = localStorage.getItem('fs_notice_v2');
                     if (savedServices) setServices(JSON.parse(savedServices));
                     if (savedOrders) setOrders(JSON.parse(savedOrders));
                     if (savedNotice) setNotice(savedNotice);
@@ -206,7 +206,7 @@
             const t = translations[lang];
             const sendService = services.find(s => s.id === parseInt(sendId)) || services[0];
             const receiveService = services.find(s => s.id === parseInt(receiveId)) || services[0];
-            const adminWhatsApp = "#";
+            const adminWhatsApp = "8801722051341";
 
             // --- FUNCTIONS ---
             const addToast = (msg, type = 'success') => {
