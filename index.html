@@ -76,7 +76,7 @@
 
         // --- FIREBASE INIT ---
         let db, auth;
-        let appId = 'default-app-id'; // Will be updated
+        let appId = 'default-app-id'; 
         
         // Ensure modules are loaded
         const waitForFirebase = () => new Promise(resolve => {
@@ -120,11 +120,12 @@
             Check: (p) => <IconBase {...p}><path d="M20 6 9 17l-5-5"/></IconBase>,
             AlertTriangle: (p) => <IconBase {...p}><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></IconBase>,
             Edit: (p) => <IconBase {...p}><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></IconBase>,
+            WifiOff: (p) => <IconBase {...p}><line x1="1" x2="23" y1="1" y2="23"/><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/><path d="M10.71 5.05A16 16 0 0 1 22.58 9"/><path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" x2="12.01" y1="20" y2="20"/></IconBase>,
         };
 
         const {
             ArrowRightLeft, Settings, User, Package, CheckCircle, Clock, Trash2, Copy, LogOut, Bell, ShieldAlert,
-            Sun, Moon, MessageCircle, LayoutDashboard, List, Sliders, X, Menu, ArrowRight, Wallet, FileText, Phone, Plus, Check, AlertTriangle, Edit
+            Sun, Moon, MessageCircle, LayoutDashboard, List, Sliders, X, Menu, ArrowRight, Wallet, FileText, Phone, Plus, Check, AlertTriangle, Edit, WifiOff
         } = Icons;
 
         // --- CLEAN INITIAL DATA ---
@@ -132,7 +133,7 @@
         const defaultServices = [
             { id: "1", name: "bKash Personal", type: "currency", unit_name: "BDT", buy_rate: 1, sell_rate: 1, reserve: 50000, min_limit: 50, max_limit: 25000, user_input_label: "Your bKash Number", payment_details: "01722051341", color: "bg-pink-600" },
             { id: "2", name: "Nagad Personal", type: "currency", unit_name: "BDT", buy_rate: 1, sell_rate: 1, reserve: 50000, min_limit: 50, max_limit: 25000, user_input_label: "Your Nagad Number", payment_details: "01722051341", color: "bg-orange-500" },
-            { id: "3", name: "Telegram Stars", type: "account", unit_name: "Stars", buy_rate: 2.20, sell_rate: 2.80, reserve: 10000, min_limit: 15, max_limit: 5000, user_input_label: "Your Telegram User ID/Link", payment_details: "@starbuyerbd", color: "bg-blue-500" }
+            { id: "3", name: "Telegram Stars", type: "account", unit_name: "Stars", buy_rate: 1.00, sell_rate: 1.00, reserve: 10000, min_limit: 150, max_limit: 5000, user_input_label: "Your Telegram User ID/Link", payment_details: "@starbuyerbd", color: "bg-blue-500" }
         ];
 
         const translations = {
@@ -174,6 +175,7 @@
             const [notice, setNotice] = useState("Loading...");
             const [user, setUser] = useState(null);
             const [loading, setLoading] = useState(true);
+            const [isLocalMode, setIsLocalMode] = useState(false); // NEW: Fallback mode
 
             // UI States
             const [darkMode, setDarkMode] = useState(false);
@@ -200,6 +202,19 @@
             const [showManualOrderForm, setShowManualOrderForm] = useState(false);
             const [editingMethod, setEditingMethod] = useState(null);
 
+            // --- DATA LOADING HELPERS ---
+            const loadLocalMethods = () => {
+                const local = localStorage.getItem('local_methods');
+                if (local) return JSON.parse(local);
+                return defaultServices;
+            };
+
+            const loadLocalOrders = () => {
+                const local = localStorage.getItem('local_orders');
+                if (local) return JSON.parse(local);
+                return [];
+            };
+
             // --- FIREBASE INTEGRATION ---
             useEffect(() => {
                 const initFirebase = async () => {
@@ -209,23 +224,21 @@
                         let firebaseConfig;
                         let app;
 
-                        // 1. TRY TO USE ENVIRONMENT CONFIG (Canvas Friendly)
+                        // 1. CONFIG SETUP
                         if (typeof __firebase_config !== 'undefined' && __firebase_config) {
                              firebaseConfig = JSON.parse(__firebase_config);
                              app = fb.initializeApp(firebaseConfig);
                              auth = fb.getAuth(app);
                              db = fb.getFirestore(app);
                              if (typeof __app_id !== 'undefined') appId = __app_id;
-
-                             // Auth
+                             
                              if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                                  await fb.signInWithCustomToken(auth, __initial_auth_token);
                              } else {
                                  await fb.signInAnonymously(auth);
                              }
-                        } 
-                        // 2. FALLBACK TO USER CONFIG (Local Friendly)
-                        else {
+                        } else {
+                            // Fallback config
                             firebaseConfig = {
                                 apiKey: "AIzaSyCA4XZ7psdNgAnBAg4yod5Rut4nKnSEuYA",
                                 authDomain: "exchange-7bf78.firebaseapp.com",
@@ -244,57 +257,65 @@
                         
                         fb.onAuthStateChanged(auth, (u) => setUser(u));
 
-                        // Sync Methods
+                        // 2. LISTENERS WITH FAILSAFE
                         const methodsCol = fb.collection(db, 'artifacts', appId, 'public', 'data', 'methods');
                         fb.onSnapshot(methodsCol, (snap) => {
                             const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                            // If empty, populate defaults (One time check)
-                            // IMPORTANT: This check ensures we don't spam writes, but tries to init if empty
-                            if (list.length === 0 && !localStorage.getItem(`init_methods_${appId}`)) {
-                                console.log("Attempting to initialize default methods...");
-                                const promises = defaultServices.map(s => fb.addDoc(methodsCol, s));
-                                Promise.all(promises).then(() => {
-                                    localStorage.setItem(`init_methods_${appId}`, 'true');
-                                    console.log("Defaults initialized");
-                                }).catch(e => console.error("Auto-init failed (likely rules):", e));
+                            if (list.length === 0) {
+                                // Try initializing if empty
+                                defaultServices.forEach(s => fb.addDoc(methodsCol, s).catch(() => {}));
+                                // If write fails, we might still see empty list, so load defaults
+                                if (!isLocalMode) {
+                                     // Don't override if we already switched to local
+                                     setServices(defaultServices);
+                                     if (!sendId) { setSendId("1"); setReceiveId("3"); }
+                                }
                             } else {
-                                setServices(list.sort((a,b) => a.id - b.id)); // Simple sort
-                                if(list.length > 0 && !sendId) {
+                                setServices(list.sort((a,b) => a.id - b.id));
+                                if(!sendId && list.length > 0) {
                                     setSendId(list[0].id);
                                     setReceiveId(list[2]?.id || list[0].id);
                                 }
                             }
                         }, (err) => {
                             console.error("Method Sync Error:", err);
-                            addToast(`Sync Failed: ${err.code}`, "error");
+                            // FALLBACK TO LOCAL
+                            setIsLocalMode(true);
+                            setServices(loadLocalMethods());
+                            setSendId("1"); setReceiveId("3");
+                            addToast("Offline Mode Activated", "warning");
                         });
 
-                        // Sync Orders
                         const ordersCol = fb.collection(db, 'artifacts', appId, 'public', 'data', 'orders');
                         fb.onSnapshot(ordersCol, (snap) => {
                             const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                             setOrders(list.sort((a,b) => new Date(b.date) - new Date(a.date)));
-                        }, (err) => console.error("Orders Sync Error", err));
+                        }, (err) => {
+                            console.error("Orders Sync Error", err);
+                            // FALLBACK TO LOCAL
+                            setIsLocalMode(true);
+                            setOrders(loadLocalOrders());
+                        });
 
-                        // Sync Notice
                         const noticeDoc = fb.doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'global');
                         fb.onSnapshot(noticeDoc, (snap) => {
                             if (snap.exists()) setNotice(snap.data().notice);
-                            else {
-                                setNotice("🌟 Welcome to Fast Sell! Buy/Sell Telegram Stars instantly.");
-                                // Try to set default, but catch error if rules block it
-                                fb.setDoc(noticeDoc, { notice: "🌟 Welcome to Fast Sell! Buy/Sell Telegram Stars instantly." }).catch(e => console.warn("Notice init failed", e));
-                            }
+                            else setNotice("🌟 Welcome to Fast Sell! Buy/Sell Telegram Stars instantly.");
                             setLoading(false);
                         }, (err) => {
-                            console.error("Notice Sync Error", err);
+                            setNotice("🌟 Welcome to Fast Sell! Buy/Sell Telegram Stars instantly (Offline).");
                             setLoading(false);
                         });
 
                     } catch (e) {
-                        console.error("Firebase Init Error:", e);
+                        console.error("Init Error:", e);
+                        // HARD FALLBACK
+                        setIsLocalMode(true);
+                        setServices(loadLocalMethods());
+                        setOrders(loadLocalOrders());
+                        setSendId("1"); setReceiveId("3");
+                        setNotice("🌟 Offline Mode: Database connection failed.");
                         setLoading(false);
-                        addToast(`Init Failed: ${e.code || e.message}`, "error");
                     }
                 };
                 initFirebase();
@@ -344,11 +365,10 @@
             };
 
             const handleSubmitOrder = async () => {
-                if(!user) { addToast("Login required (Auth is loading...)", "error"); return; }
                 if(!trxInput || !userInput) { addToast("All fields required", "error"); return; }
-                if(!sendService.id || !receiveService.id) { addToast("System Error: No payment methods loaded. Contact Admin.", "error"); return; }
                 
                 const newOrder = {
+                    id: Date.now().toString(), // Local ID
                     orderId: `ORD-${Math.floor(Math.random() * 9000) + 1000}`,
                     sendServiceId: sendService.id, receiveServiceId: receiveService.id,
                     sendAmount: sendAmount, receiveAmount: receiveAmount,
@@ -356,27 +376,37 @@
                     date: new Date().toLocaleString()
                 };
 
-                try {
-                    const fb = window.firebaseModules;
-                    await fb.addDoc(fb.collection(db, 'artifacts', appId, 'public', 'data', 'orders'), newOrder);
-                    setView('dashboard'); setUserInput(''); setTrxInput(''); setSendAmount(''); setReceiveAmount(''); setExchangeStep(1);
-                    addToast("Order Placed!", "success");
-                } catch(e) {
-                    console.error(e);
-                    // Detailed Error for User
-                    let msg = "Failed to place order.";
-                    if (e.code === 'permission-denied') msg += " (Firebase Rules Blocked: Check Console)";
-                    else if (e.code === 'invalid-argument') msg += " (Invalid Data: Check Console)";
-                    else msg += ` (${e.code || e.message})`;
-                    addToast(msg, "error");
+                const finalizeOrder = () => {
+                     setView('dashboard'); setUserInput(''); setTrxInput(''); setSendAmount(''); setReceiveAmount(''); setExchangeStep(1);
+                };
+
+                // TRY FIREBASE
+                if (!isLocalMode && user) {
+                    try {
+                        const fb = window.firebaseModules;
+                        await fb.addDoc(fb.collection(db, 'artifacts', appId, 'public', 'data', 'orders'), newOrder);
+                        addToast("Order Placed!", "success");
+                        finalizeOrder();
+                        return;
+                    } catch(e) {
+                        console.warn("Firebase Write Failed, switching to local:", e);
+                        setIsLocalMode(true);
+                    }
                 }
+
+                // LOCAL FALLBACK
+                const currentOrders = loadLocalOrders();
+                const updatedOrders = [newOrder, ...currentOrders];
+                localStorage.setItem('local_orders', JSON.stringify(updatedOrders));
+                setOrders(updatedOrders);
+                addToast("Order Placed (Local Mode)", "warning");
+                finalizeOrder();
             };
 
             const handleNextStep = () => {
                 if(!sendAmount || !userInput) { addToast("Fill all fields", "error"); return; }
                 if(!sendService.id) { addToast("Service loading... please wait", "error"); return; }
                 
-                // Limit Validation
                 if(parseFloat(sendAmount) < sendService.min_limit) {
                     addToast(`Minimum limit is ${sendService.min_limit} ${sendService.unit_name}`, "error");
                     return;
@@ -385,8 +415,7 @@
                     addToast(`Maximum limit is ${sendService.max_limit} ${sendService.unit_name}`, "error");
                     return;
                 }
-
-                // Binance Threshold Check
+                
                 const isBinanceReceive = receiveService.name?.toLowerCase().includes('binance') || receiveService.name?.toLowerCase().includes('usdt');
                 const valueInBDT = parseFloat(receiveAmount) * receiveService.sell_rate;
                 if (isBinanceReceive && valueInBDT < 1000) {
@@ -400,7 +429,6 @@
             // ADD / UPDATE METHOD
             const handleAddService = async (e) => {
                 e.preventDefault();
-                if(!user) { addToast("Not authenticated", "error"); return; }
                 const fd = new FormData(e.target);
                 const methodData = {
                     name: fd.get('name'), type: fd.get('type'), unit_name: fd.get('unit'),
@@ -411,36 +439,51 @@
                     user_input_label: fd.get('label'), payment_details: fd.get('payment'), color: "bg-slate-500"
                 };
 
-                const fb = window.firebaseModules;
-                try {
-                    if (editingMethod) {
-                        const docRef = fb.doc(db, 'artifacts', appId, 'public', 'data', 'methods', editingMethod.id);
-                        await fb.updateDoc(docRef, methodData);
-                        setEditingMethod(null);
-                        addToast("Method Updated!", "success");
-                    } else {
-                        await fb.addDoc(fb.collection(db, 'artifacts', appId, 'public', 'data', 'methods'), methodData);
-                        addToast("Method Added!", "success");
-                    }
-                    setShowAddMethodForm(false);
-                } catch(e) {
-                    console.error(e);
-                    addToast(`Action failed: ${e.code || e.message}`, "error");
+                const finalizeMethod = (newMethod) => {
+                     setShowAddMethodForm(false);
+                     setEditingMethod(null);
                 }
+
+                // TRY FIREBASE
+                if (!isLocalMode && user) {
+                    try {
+                        const fb = window.firebaseModules;
+                        if (editingMethod) {
+                            const docRef = fb.doc(db, 'artifacts', appId, 'public', 'data', 'methods', editingMethod.id);
+                            await fb.updateDoc(docRef, methodData);
+                        } else {
+                            await fb.addDoc(fb.collection(db, 'artifacts', appId, 'public', 'data', 'methods'), methodData);
+                        }
+                        addToast("Method Saved!", "success");
+                        finalizeMethod();
+                        return;
+                    } catch(e) {
+                         console.warn("Firebase Write Failed, switching to local:", e);
+                         setIsLocalMode(true);
+                    }
+                }
+
+                // LOCAL FALLBACK
+                const currentMethods = loadLocalMethods();
+                let updatedMethods;
+                if (editingMethod) {
+                    updatedMethods = currentMethods.map(m => m.id === editingMethod.id ? { ...m, ...methodData } : m);
+                } else {
+                    methodData.id = Date.now().toString();
+                    updatedMethods = [...currentMethods, methodData];
+                }
+                localStorage.setItem('local_methods', JSON.stringify(updatedMethods));
+                setServices(updatedMethods);
+                addToast("Method Saved (Local Mode)", "warning");
+                finalizeMethod();
             };
             
-            // RESET DEFAULTS
             const handleResetDefaults = async () => {
-                if(!user) return;
-                const fb = window.firebaseModules;
-                const methodsCol = fb.collection(db, 'artifacts', appId, 'public', 'data', 'methods');
-                try {
-                    const promises = defaultServices.map(s => fb.addDoc(methodsCol, s));
-                    await Promise.all(promises);
-                    addToast("Default methods added!", "success");
-                } catch(e) {
-                     addToast(`Reset Failed: ${e.code}`, "error");
-                }
+                // LOCAL ONLY FOR SAFETY IN DEMO
+                localStorage.setItem('local_methods', JSON.stringify(defaultServices));
+                setServices(defaultServices);
+                setIsLocalMode(true); // Force local to avoid sync mixup
+                addToast("Defaults Restored (Local Mode)", "success");
             };
 
             const startEditMethod = (method) => {
@@ -449,42 +492,69 @@
             };
 
             const handleOrderAction = async (id, action, data = null) => {
-                if(!user) return;
-                const fb = window.firebaseModules;
-                const docRef = fb.doc(db, 'artifacts', appId, 'public', 'data', 'orders', id);
-                
-                try {
-                    if (action === 'deliver') await fb.updateDoc(docRef, { status: 'completed', deliveryData: data });
-                    if (action === 'cancel') await fb.updateDoc(docRef, { status: 'cancelled' });
-                    if (action === 'update_send') await fb.updateDoc(docRef, { sendAmount: data });
-                    if (action === 'update_receive') await fb.updateDoc(docRef, { receiveAmount: data });
-                    
-                    if(action === 'deliver' || action === 'cancel') addToast(`Order ${action}ed!`, action === 'cancel' ? 'error' : 'success');
-                } catch(e) {
-                    addToast(`Update Failed: ${e.code}`, "error");
-                }
+                // TRY FIREBASE
+                 if (!isLocalMode && user) {
+                    try {
+                        const fb = window.firebaseModules;
+                        const docRef = fb.doc(db, 'artifacts', appId, 'public', 'data', 'orders', id);
+                        if (action === 'deliver') await fb.updateDoc(docRef, { status: 'completed', deliveryData: data });
+                        if (action === 'cancel') await fb.updateDoc(docRef, { status: 'cancelled' });
+                        if (action === 'update_send') await fb.updateDoc(docRef, { sendAmount: data });
+                        if (action === 'update_receive') await fb.updateDoc(docRef, { receiveAmount: data });
+                        
+                        if(action === 'deliver' || action === 'cancel') addToast(`Order ${action}ed!`, action === 'cancel' ? 'error' : 'success');
+                        return;
+                    } catch(e) {
+                        console.warn("Update failed, switching local", e);
+                        setIsLocalMode(true);
+                    }
+                 }
+
+                 // LOCAL FALLBACK
+                 const currentOrders = loadLocalOrders();
+                 const updatedOrders = currentOrders.map(o => {
+                     if (o.id !== id) return o;
+                     let updates = {};
+                     if (action === 'deliver') updates = { status: 'completed', deliveryData: data };
+                     if (action === 'cancel') updates = { status: 'cancelled' };
+                     if (action === 'update_send') updates = { sendAmount: data };
+                     if (action === 'update_receive') updates = { receiveAmount: data };
+                     return { ...o, ...updates };
+                 });
+                 localStorage.setItem('local_orders', JSON.stringify(updatedOrders));
+                 setOrders(updatedOrders);
+                 addToast("Updated (Local Mode)", "warning");
             };
             
             const handleSaveNotice = async () => {
-                 if(!user) return;
-                 const fb = window.firebaseModules;
-                 try {
-                     await fb.setDoc(fb.doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'global'), { notice });
-                     addToast("Notice saved!", "success");
-                 } catch(e) {
-                     addToast(`Save Failed: ${e.code}`, "error");
+                 // Try firebase
+                 if (!isLocalMode && user) {
+                     try {
+                         const fb = window.firebaseModules;
+                         await fb.setDoc(fb.doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'global'), { notice });
+                         addToast("Notice saved!", "success");
+                         return;
+                     } catch(e) {}
                  }
+                 addToast("Notice saved locally (Session only)", "warning");
             }
 
             const deleteMethod = async (id) => {
-                if(!user || !confirm('Delete?')) return;
-                const fb = window.firebaseModules;
-                try {
-                    await fb.deleteDoc(fb.doc(db, 'artifacts', appId, 'public', 'data', 'methods', id));
-                    addToast("Method deleted", "success");
-                } catch(e) {
-                    addToast(`Delete Failed: ${e.code}`, "error");
+                if(!confirm('Delete?')) return;
+                
+                if (!isLocalMode && user) {
+                    try {
+                        const fb = window.firebaseModules;
+                        await fb.deleteDoc(fb.doc(db, 'artifacts', appId, 'public', 'data', 'methods', id));
+                        addToast("Method deleted", "success");
+                        return;
+                    } catch(e) { setIsLocalMode(true); }
                 }
+
+                const currentMethods = loadLocalMethods().filter(m => m.id !== id);
+                localStorage.setItem('local_methods', JSON.stringify(currentMethods));
+                setServices(currentMethods);
+                addToast("Deleted (Local Mode)", "warning");
             }
 
             const openWhatsApp = () => window.open(`https://wa.me/${adminWhatsApp}`, '_blank');
@@ -509,7 +579,13 @@
                         <div className="max-w-6xl mx-auto px-4 h-16 flex justify-between items-center">
                             <div className="flex items-center gap-2 cursor-pointer" onClick={() => setView('home')}>
                                 <div className="bg-indigo-600 text-white p-2 rounded-lg"><ArrowRightLeft size={20}/></div>
-                                <div><h1 className="font-black text-xl leading-none">Fast Sell</h1><p className="text-[10px] opacity-60">Trusted Exchange</p></div>
+                                <div>
+                                    <h1 className="font-black text-xl leading-none">Fast Sell</h1>
+                                    <div className="flex items-center gap-1">
+                                        <p className="text-[10px] opacity-60">Trusted Exchange</p>
+                                        {isLocalMode && <span className="text-[10px] bg-red-100 text-red-600 px-1 rounded font-bold">OFFLINE MODE</span>}
+                                    </div>
+                                </div>
                             </div>
                             <div className="hidden md:flex gap-2">
                                 <button onClick={() => setView('home')} className={`px-4 py-2 rounded-lg text-sm font-bold ${view==='home'?'bg-indigo-600 text-white':'hover:bg-slate-200 text-slate-600'}`}>{t.nav_home}</button>
@@ -552,6 +628,11 @@
                                         <div className="p-6 space-y-6">
                                             {exchangeStep === 1 ? (
                                                 <div className="space-y-4 animate-fade-in">
+                                                    {isLocalMode && (
+                                                        <div className="bg-red-50 border border-red-200 p-3 rounded-xl text-red-600 text-xs font-bold flex gap-2 items-center">
+                                                            <WifiOff size={16}/> Offline Mode Active. Orders are saved locally on this device.
+                                                        </div>
+                                                    )}
                                                     <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
                                                         <div className="flex justify-between text-xs font-bold uppercase text-slate-500 mb-2">
                                                             <span>{t.send}</span>
