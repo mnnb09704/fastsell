@@ -3,1489 +3,698 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>পছন্দের শপ - ডিজিটাল প্রোডাক্ট শপ</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
+    <title>Deoya Neoya - Ultra Exchange</title>
+    
+    <!-- Error Handling Styles -->
     <style>
-        :root {
-            /* Dark Theme Colors (Default) */
-            --color-bg: #121212;
-            --color-text: #f3f4f6;
-            --color-text-muted: #9ca3af;
-            --color-surface: #1f1f1f;
-            --color-glass-bg: rgba(31, 31, 31, 0.7);
-            --color-glass-border: rgba(255, 255, 255, 0.1);
-            --color-input-bg: #374151;
-            --color-primary: #f59e0b;
-            --color-primary-hover: #d97706;
-            --color-primary-text: #121212;
-            --color-primary-text-alt: #ffffff;
-        }
-
-        .light-mode {
-            /* Light Theme Colors */
-            --color-bg: #f9fafb;
-            --color-text: #111827;
-            --color-text-muted: #6b7281;
-            --color-surface: #ffffff;
-            --color-glass-bg: rgba(255, 255, 255, 0.7);
-            --color-glass-border: rgba(0, 0, 0, 0.1);
-            --color-input-bg: #e5e7eb;
-            --color-primary: #f59e0b;
-            --color-primary-hover: #d97706;
-            --color-primary-text: #ffffff;
-            --color-primary-text-alt: #121212;
-        }
-
-        html { scroll-behavior: smooth; }
-        body {
-            font-family: 'Hind Siliguri', sans-serif;
-            background-color: var(--color-bg);
-            color: var(--color-text);
-            transition: background-color 0.3s, color 0.3s;
-        }
-        .glass-effect {
-            background: var(--color-glass-bg);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid var(--color-glass-border);
-        }
-        .hero-gradient {
-            background: radial-gradient(circle at 50% 0%, rgba(250, 204, 21, 0.1), transparent 60%);
-        }
-        .notification {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            color: white;
-            padding: 12px 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            transform: translateY(150%);
-            transition: transform 0.5s ease-in-out;
-            z-index: 1050;
-        }
-        .notification.show { transform: translateY(0); }
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.7);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.3s, visibility 0.3s;
-        }
-        .modal-overlay.active {
-            opacity: 1;
-            visibility: visible;
-        }
-        .modal-content {
-            background: var(--color-surface);
-            padding: 2rem;
-            border-radius: 12px;
-            width: 90%;
-            max-width: 500px;
-            transform: scale(0.9);
-            transition: transform 0.3s;
-            position: relative;
-        }
-        .modal-overlay.active .modal-content { transform: scale(1); }
-        #cart-modal .modal-content {
-            margin-left: auto;
-            margin-right: 0;
-            height: 100%;
-            border-radius: 12px 0 0 12px;
-            transform: translateX(100%);
-        }
-        #cart-modal.active .modal-content {
-             transform: translateX(0);
-        }
-        .category-btn.active {
-            background-color: var(--color-primary);
-            color: var(--color-primary-text);
-        }
-        .favorite-btn.favorited { color: #ef4444; }
-        .dashboard-nav-item.active {
-            background-color: var(--color-primary-hover);
-            color: white;
-        }
-        .cart-item-checkbox {
-            accent-color: #f59e0b;
-        }
-        .star-rating .star {
-            color: #4b5563; /* gray-600 */
-            cursor: pointer;
-            transition: color 0.2s;
-        }
-        .star-rating .star:hover,
-        .star-rating .star.selected {
-            color: var(--color-primary);
-        }
-
-        /* Color variable applications */
-        .text-gray-300, .text-gray-400 { color: var(--color-text-muted); }
-        h1, h2, h3, h4, h5, h6, .text-white { color: var(--color-text); }
-        .bg-gray-800, input.bg-gray-800, textarea.bg-gray-800, select.bg-gray-800 { 
-            background-color: var(--color-input-bg);
-            color: var(--color-text);
-        }
-        .bg-yellow-500 {
-            background-color: var(--color-primary);
-            color: var(--color-primary-text);
-        }
-        .text-yellow-500, .border-yellow-500 {
-            color: var(--color-primary);
-            border-color: var(--color-primary);
-        }
-        .hover\:bg-yellow-500:hover {
-            background-color: var(--color-primary);
-            color: var(--color-primary-text-alt) !important;
-        }
-         .hover\:bg-yellow-600:hover {
-            background-color: var(--color-primary-hover);
-        }
-        .text-yellow-400 { color: var(--color-primary); }
-
-        /* Slider Styles */
-        .slider-container {
-            position: relative;
-            width: 100%;
-            height: 60vh;
-            overflow: hidden;
-        }
-        .slide {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            opacity: 0;
-            transition: opacity 1s ease-in-out;
-        }
-        .slide.active { opacity: 1; }
-        .slide img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        .slide-content {
-            position: absolute;
-            bottom: 10%;
-            left: 5%;
-            color: white;
-            background: rgba(0,0,0,0.5);
-            padding: 20px;
-            border-radius: 8px;
-            max-width: 50%;
-        }
-        .slider-nav {
-            position: absolute;
-            bottom: 20px;
-            right: 20px;
-            display: flex;
-            gap: 10px;
-        }
-        .slider-nav button {
-            background: rgba(255,255,255,0.3);
-            border: none;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            color: white;
-            cursor: pointer;
-        }
+        #error-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 9999; padding: 20px; color: red; font-family: monospace; border-top: 5px solid red; }
+        .loading { display: flex; justify-content: center; align-items: center; height: 100vh; font-family: sans-serif; color: #666; }
+        /* Smooth Scrollbar */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
-</head>
-<body>
-
-    <!-- Header Section -->
-    <header class="glass-effect sticky top-0 z-50">
-        <nav class="container mx-auto px-4 lg:px-6 py-3 flex justify-between items-center">
-            <h1 class="text-xl md:text-2xl font-bold" data-lang-key="site_title">পছন্দের শপ</h1>
-            <div class="hidden lg:flex items-center space-x-6">
-                <a href="#" data-action="showHome" class="hover:text-yellow-500 transition" data-lang-key="nav_home">হোম</a>
-                <a href="#products" class="hover:text-yellow-500 transition" data-lang-key="nav_products">প্রোডাক্টস</a>
-                <a href="#" data-action="showSellProduct" class="hover:text-yellow-500 transition" data-lang-key="nav_sell">পণ্য সেল করুন</a>
-                <a href="#" data-action="showDashboard" class="hover:text-yellow-500 transition" data-lang-key="nav_account">আমার অ্যাকাউন্ট</a>
-            </div>
-            <div class="flex items-center gap-4">
-                <div class="relative hidden md:block">
-                    <input type="text" id="search-bar" data-lang-key="search_placeholder" placeholder="প্রোডাক্ট খুঁজুন..." class="bg-gray-800 placeholder-gray-400 rounded-full py-2 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-yellow-500 w-full">
-                    <svg class="w-5 h-5 text-gray-400 absolute top-1/2 left-3 -translate-y-1/2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" /></svg>
-                </div>
-                <!-- Language Selector -->
-                <div class="flex items-center gap-1 glass-effect p-1 rounded-full">
-                    <button id="lang-bn" data-action="setLang" data-lang="bn" class="px-2 py-1 text-sm rounded-full bg-yellow-500 text-black">বাং</button>
-                    <button id="lang-en" data-action="setLang" data-lang="en" class="px-2 py-1 text-sm rounded-full">Eng</button>
-                </div>
-                <!-- Theme Toggle Button -->
-                <button data-action="toggleTheme" id="theme-toggle-btn" class="hover:text-yellow-500 transition">
-                    <svg id="moon-icon" class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z" />
-                    </svg>
-                    <svg id="sun-icon" class="w-6 h-6 hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z" />
-                    </svg>
-                </button>
-                <button data-action="showFavorites" class="relative hover:text-yellow-500 transition">
-                    <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" /></svg>
-                    <span id="favorite-count" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">0</span>
-                </button>
-                <button data-action="openModal" data-modal-id="cart-modal" class="relative hover:text-yellow-500 transition">
-                    <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 0 0-3 3h15.75m-12.75-3h11.218c.51 0 .962-.343 1.087-.835l1.823-6.814a.75.75 0 0 0-.693-.941H5.617l-.755-2.818A.75.75 0 0 0 3.86 3H2.25M8 21a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Zm10.5 0a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Z" /></svg>
-                    <span id="cart-count" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">0</span>
-                </button>
-                <button id="auth-btn" data-action="authAction" class="bg-yellow-500 hover:bg-yellow-600 font-bold py-2 px-4 rounded-lg transition duration-300 text-sm" data-lang-key="login_btn">লগইন</button>
-            </div>
-        </nav>
-    </header>
-
-    <!-- Main Content -->
-    <div id="main-content">
-        <!-- Slider Section -->
-        <section id="slider" class="slider-container">
-            <!-- Slides will be dynamically generated here -->
-            <div class="slider-nav">
-                <button data-action="prevSlide">&lt;</button>
-                <button data-action="nextSlide">&gt;</button>
-            </div>
-        </section>
-
-        <!-- Hero Section -->
-        <main class="hero-gradient">
-            <section class="container mx-auto px-6 py-24 text-center">
-                <h2 class="text-4xl md:text-6xl font-extrabold mb-4 leading-tight" data-lang-key="hero_title">আপনার প্রয়োজনীয় সকল ডিজিটাল প্রোডাক্টস</h2>
-                <p class="text-lg max-w-2xl mx-auto mb-8" data-lang-key="hero_subtitle">ওয়েব টেমপ্লেট, গ্রাফিক্স ডিজাইন, সফটওয়্যার এবং আরও অনেক কিছু, সবই এক জায়গায়।</p>
-                <a href="#products" class="bg-yellow-500 hover:bg-yellow-600 font-bold py-3 px-8 rounded-lg text-lg transition duration-300" data-lang-key="hero_button">প্রোডাক্ট দেখুন</a>
-            </section>
-        </main>
-
-        <!-- Products Section -->
-        <section id="products" class="py-20">
-            <div class="container mx-auto px-6">
-                <h3 class="text-3xl font-bold text-center mb-4" data-lang-key="products_title">আমাদের সেরা প্রোডাক্টস</h3>
-                <div id="category-filters" class="flex justify-center flex-wrap gap-2 md:gap-4 mb-12"></div>
-                <div id="product-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-                    <!-- Loading Indicator -->
-                    <div id="loading-indicator" class="col-span-full text-center py-10">
-                        <p class="text-lg" data-lang-key="loading_text">লোড হচ্ছে...</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </div>
-
-    <!-- User Dashboard Section (Initially Hidden) -->
-    <section id="dashboard" class="hidden py-20">
-        <div class="container mx-auto px-6">
-            <h2 class="text-3xl font-bold mb-8" data-lang-key="dashboard_title">আমার অ্যাকাউন্ট ড্যাশবোর্ড</h2>
-            <div class="flex flex-col md:flex-row gap-8">
-                <!-- Dashboard Navigation -->
-                <div class="w-full md:w-1/4 glass-effect p-4 rounded-lg self-start">
-                    <nav id="dashboard-nav" class="flex flex-col space-y-2">
-                        <button data-action="switchDashboardTab" data-target="my-orders" class="text-left p-3 rounded-md hover:bg-gray-700 transition dashboard-nav-item active" data-lang-key="dashboard_nav_orders">আমার অর্ডার</button>
-                        <button data-action="switchDashboardTab" data-target="my-favorites" class="text-left p-3 rounded-md hover:bg-gray-700 transition dashboard-nav-item" data-lang-key="dashboard_nav_favorites">ফেভারিট পণ্য</button>
-                        <button data-action="switchDashboardTab" data-target="upload-product" class="text-left p-3 rounded-md hover:bg-gray-700 transition dashboard-nav-item" data-lang-key="dashboard_nav_upload">আপনার পণ্য আপলোড করুন</button>
-                        <button data-action="switchDashboardTab" data-target="settings" class="text-left p-3 rounded-md hover:bg-gray-700 transition dashboard-nav-item" data-lang-key="dashboard_nav_settings">সেটিংস</button>
-                        <button data-action="switchDashboardTab" data-target="site-settings" class="text-left p-3 rounded-md hover:bg-gray-700 transition dashboard-nav-item" data-lang-key="dashboard_nav_site_settings">সাইট সেটিংস</button>
-                        <button data-action="switchDashboardTab" data-target="all-orders" id="all-orders-nav-btn" class="hidden text-left p-3 rounded-md hover:bg-gray-700 transition dashboard-nav-item" data-lang-key="dashboard_nav_all_orders">সকল অর্ডার</button>
-                    </nav>
-                </div>
-                <!-- Dashboard Content -->
-                <div class="w-full md:w-3/4">
-                    <div id="my-orders" class="dashboard-content">
-                        <h3 class="text-2xl font-semibold mb-4" data-lang-key="orders_title">অর্ডার হিস্টোরি</h3>
-                        <div class="glass-effect p-6 rounded-lg" id="orders-list">
-                            <!-- Orders will be rendered here -->
-                        </div>
-                    </div>
-                    <div id="all-orders" class="dashboard-content hidden">
-                        <h3 class="text-2xl font-semibold mb-4" data-lang-key="all_orders_title">সকল কাস্টমার অর্ডার</h3>
-                        <div class="glass-effect p-6 rounded-lg" id="all-orders-list">
-                            <!-- All orders for admin will be rendered here -->
-                        </div>
-                    </div>
-                    <div id="my-favorites" class="dashboard-content hidden">
-                         <h3 class="text-2xl font-semibold mb-4" data-lang-key="favorites_title">আপনার ফেভারিট পণ্য</h3>
-                         <div id="favorites-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                <!-- Favorite items will be rendered here -->
-                         </div>
-                    </div>
-                    <div id="upload-product" class="dashboard-content hidden">
-                        <h3 class="text-2xl font-semibold mb-4" data-lang-key="upload_title">নতুন পণ্য যোগ করুন</h3>
-                        <div class="glass-effect p-6 rounded-lg">
-                            <form id="upload-form" class="space-y-4">
-                                <input id="upload-name" type="text" placeholder="পণ্যের নাম" class="w-full bg-gray-800 p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500" required>
-                                <textarea id="upload-desc" placeholder="পণ্যের বিবরণ" rows="4" class="w-full bg-gray-800 p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"></textarea>
-                                <input id="upload-price" type="number" placeholder="পণ্যের মূল্য (৳)" class="w-full bg-gray-800 p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500" required>
-                                <input id="upload-category" type="text" placeholder="ক্যাটেগরি (যেমন: Web Templates)" class="w-full bg-gray-800 p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500" required>
-                                <input id="upload-image" type="text" placeholder="পণ্যের ছবির URL" class="w-full bg-gray-800 p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500" required>
-                                <button type="submit" class="w-full bg-yellow-500 hover:bg-yellow-600 font-bold py-3 px-4 rounded-lg transition duration-300" data-lang-key="upload_button">পণ্য আপলোড করুন</button>
-                            </form>
-                        </div>
-                    </div>
-                     <div id="settings" class="dashboard-content hidden">
-                         <h3 class="text-2xl font-semibold mb-4" data-lang-key="settings_title">অ্যাকাউন্ট সেটিংস</h3>
-                          <div class="glass-effect p-6 rounded-lg">
-                           <div id="profile-display" class="mb-6">
-                                <h4 id="profile-full-name" class="text-xl font-bold"></h4>
-                                <p id="profile-email"></p>
-                                <p id="profile-mobile"></p>
-                           </div>
-                           <h4 class="text-xl font-semibold mb-3" data-lang-key="payout_title">প্রোফাইল ও পেমেন্ট তথ্য</h4>
-                           <p class="text-sm mb-4" data-lang-key="payout_desc">আপনার পণ্য বিক্রি হলে, আমরা নিচের তথ্যে আপনাকে পেমেন্ট পাঠাব।</p>
-                           <form id="settings-form" class="space-y-4">
-                                <h5 class="text-lg font-semibold border-b border-gray-700 pb-2" data-lang-key="settings_optional_title">ঐচ্ছিক তথ্য (প্রোফাইল পূর্ণ করুন)</h5>
-                                <textarea id="settings-address" placeholder="আপনার ঠিকানা" rows="3" class="w-full bg-gray-800 p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"></textarea>
-                                <input id="settings-house" type="text" placeholder="বাড়ির নম্বর" class="w-full bg-gray-800 p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500">
-                                <input id="settings-zip" type="text" placeholder="জিপ কোড" class="w-full bg-gray-800 p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500">
-                                
-                                <h5 class="text-lg font-semibold border-b border-gray-700 pb-2 pt-4" data-lang-key="payout_title">পেমেন্ট পাওয়ার তথ্য</h5>
-                                <select id="payout-method" class="w-full bg-gray-800 p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500">
-                                    <option value="bKash">বিকাশ</option>
-                                    <option value="Nagad">নগদ</option>
-                                    <option value="Rocket">রকেট</option>
-                                </select>
-                                <input id="payout-number" type="text" placeholder="আপনার অ্যাকাউন্ট নম্বর" class="w-full bg-gray-800 p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500" required>
-                                <button type="submit" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg transition" data-lang-key="payout_save_btn">তথ্য সেভ করুন</button>
-                           </form>
-                         </div>
-                    </div>
-                     <div id="site-settings" class="dashboard-content hidden">
-                        <h3 class="text-2xl font-semibold mb-4" data-lang-key="site_settings_title">সাইট পেমেন্ট সেটিংস</h3>
-                        <div class="glass-effect p-6 rounded-lg">
-                            <p class="text-sm mb-4" data-lang-key="site_settings_desc">গ্রাহকদের কাছ থেকে পেমেন্ট গ্রহণের জন্য এখানে আপনার পেমেন্ট গেটওয়ের তথ্য দিন।</p>
-                            <form id="site-settings-form" class="space-y-4">
-                                <input id="site-gateway-name" type="text" placeholder="পেমেন্ট গেটওয়ের নাম (যেমন: bKash)" class="w-full bg-gray-800 p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500" required>
-                                <input id="site-gateway-number" type="text" placeholder="পেমেন্ট গেটওয়ে নম্বর" class="w-full bg-gray-800 p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500" required>
-                                <button type="submit" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg transition" data-lang-key="payout_save_btn">তথ্য সেভ করুন</button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Footer -->
-    <footer class="bg-black py-8">
-        <div class="container mx-auto px-6 text-center">
-            <div class="flex justify-center items-center gap-6 mb-4">
-                <a href="#" aria-label="Facebook" class="text-gray-400 hover:text-white"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" clip-rule="evenodd" /></svg></a>
-                <a href="#" aria-label="YouTube" class="text-gray-400 hover:text-white"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M19.812 5.418c.861.23 1.538.907 1.768 1.768C21.998 8.78 22 12 22 12s0 3.22-.42 4.814a2.506 2.506 0 0 1-1.768 1.768c-1.594.42-7.812.42-7.812.42s-6.218 0-7.812-.42a2.506 2.506 0 0 1-1.768-1.768C2 15.22 2 12 2 12s0-3.22.42-4.814a2.506 2.506 0 0 1 1.768-1.768C5.782 5 12 5 12 5s6.218 0 7.812.418ZM15.194 12 10 15.194V8.806L15.194 12Z" clip-rule="evenodd" /></svg></a>
-                <a href="#" aria-label="TikTok" class="text-gray-400 hover:text-white"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.1 1.58-2.91 2.34-4.82 2.34-1.43 0-2.83-.53-3.91-1.48-1.58-1.38-2.26-3.39-2.18-5.34 0-.04.01-.08.01-.12.02-1.58.43-3.12 1.2-4.44.83-1.4 2.02-2.43 3.48-3.03.01-.05.02-.09.02-.14.01-2.24-.02-4.48-.01-6.72 0-.25.01-.5.01-.75.01-.68.01-1.37.02-2.05.02-.7.01-1.4-.01-2.1.01-.15.02-.3.02-.45.01-.1.02-.2.02-.31.02-.22.01-.44.01-.66 0-.08.01-.16.01-.24z"/></svg></a>
-                <a href="#" aria-label="Telegram" class="text-gray-400 hover:text-white"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="m9.417 15.181-.397 5.584c.568 0 .814-.244 1.109-.537l2.663-2.545 5.518 4.041c1.012.564 1.725.267 1.998-.931L23.613 3.106c.338-1.393-.564-2.001-1.517-1.592L.617 10.431C-1.214 11.12-1.214 12.21.901 12.565l5.703.874 13.22-8.26C2.533 4.41 19.88 4.878 19.17 5.421z"/></svg></a>
-            </div>
-            <div class="flex justify-center gap-4 mb-4">
-                <a href="#" data-action="openModal" data-modal-id="terms-modal" class="hover:text-yellow-400" data-lang-key="footer_terms">টার্মস এন্ড কন্ডিশনস</a>
-                <span class="text-gray-500">|</span>
-                <a href="#" class="hover:text-yellow-400" data-lang-key="footer_support">সাপোর্ট</a>
-            </div>
-            <p data-lang-key="footer_copyright">&copy; ২০২৫ পছন্দের শপ। সর্বসত্ত্ব সংরক্ষিত।</p>
-        </div>
-    </footer>
-
-    <!-- Modals -->
-    <div id="notification" class="notification"></div>
     
-    <!-- Auth Modal -->
-    <div id="auth-modal" class="modal-overlay">
-        <div class="modal-content">
-            <button data-action="closeModal" data-modal-id="auth-modal" class="absolute top-4 right-4 hover:text-white text-2xl font-bold">&times;</button>
-            <div id="login-view">
-                 <h3 class="text-2xl font-bold text-center mb-6" data-lang-key="login_title">স্বাগতম!</h3>
-                 <form id="login-form" class="space-y-4">
-                     <input id="login-email" type="email" placeholder="আপনার ইমেইল" class="w-full bg-gray-800 p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500" required>
-                     <input id="login-password" type="password" placeholder="আপনার পাসওয়ার্ড" class="w-full bg-gray-800 p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500" required>
-                     <button type="submit" class="w-full bg-yellow-500 hover:bg-yellow-600 font-bold py-3 px-4 rounded-lg transition duration-300" data-lang-key="login_form_btn">লগইন করুন</button>
-                 </form>
-                 <div class="mt-6 text-center">
-                     <p class="text-sm" data-lang-key="login_no_account">অ্যাকাউন্ট নেই?</p>
-                     <button type="button" data-action="showRegisterView" class="w-full mt-2 py-2 px-4 border border-yellow-500 text-yellow-500 rounded-lg hover:bg-yellow-500 hover:text-black transition" data-lang-key="login_create_account">এখনি তৈরি করুন</button>
-                 </div>
-            </div>
-            <div id="register-view" class="hidden">
-                 <h3 class="text-2xl font-bold text-center mb-6" data-lang-key="register_title">অ্যাকাউন্ট তৈরি করুন</h3>
-                 <form id="register-form" class="space-y-4">
-                     <input id="register-name" type="text" placeholder="আপনার পুরো নাম" class="w-full bg-gray-800 p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500" required>
-                     <input id="register-mobile" type="tel" placeholder="আপনার মোবাইল নম্বর" class="w-full bg-gray-800 p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500" required>
-                     <input id="register-email" type="email" placeholder="আপনার ইমেইল" class="w-full bg-gray-800 p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500" required>
-                     <input id="register-password" type="password" placeholder="একটি পাসওয়ার্ড দিন" class="w-full bg-gray-800 p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500" required>
-                     <input id="register-confirm-password" type="password" placeholder="পাসওয়ার্ডটি আবার দিন" class="w-full bg-gray-800 p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500" required>
-                     <div class="flex items-center space-x-2">
-                         <input type="checkbox" id="register-terms" class="h-4 w-4 bg-gray-800 border-gray-600 text-yellow-500 focus:ring-yellow-600" required>
-                         <label for="register-terms" class="text-sm" data-lang-key="register_terms_agree">আমি <a href="#" data-action="openModal" data-modal-id="terms-modal" class="text-yellow-400 hover:underline" data-lang-key="footer_terms">শর্তাবলীতে</a> সম্মত।</label>
-                     </div>
-                     <button type="submit" class="w-full bg-yellow-500 hover:bg-yellow-600 font-bold py-3 px-4 rounded-lg transition duration-300" data-lang-key="register_form_btn">রেজিস্টার করুন</button>
-                 </form>
-                 <div class="mt-6 text-center">
-                     <p class="text-sm" data-lang-key="register_has_account">ইতিমধ্যে অ্যাকাউন্ট আছে?</p>
-                     <button type="button" data-action="showLoginView" class="w-full mt-2 py-2 px-4 border border-yellow-500 text-yellow-500 rounded-lg hover:bg-yellow-500 hover:text-black transition" data-lang-key="register_login">লগইন করুন</button>
-                 </div>
-            </div>
-        </div>
-    </div>
+    <!-- React & ReactDOM -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
     
-    <!-- Cart Modal -->
-    <div id="cart-modal" class="modal-overlay">
-        <div class="modal-content max-w-md">
-            <button data-action="closeModal" data-modal-id="cart-modal" class="absolute top-4 right-4 hover:text-white text-2xl font-bold">&times;</button>
-            <h3 class="text-2xl font-bold mb-6" data-lang-key="cart_title">আপনার কার্ট</h3>
-            <div id="cart-items" class="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
-                <!-- Cart items will be injected here -->
-            </div>
-            <div class="mt-6 border-t border-gray-700 pt-4">
-                <div class="flex justify-between items-center font-bold text-lg">
-                    <span data-lang-key="cart_total">নির্বাচিত মোট:</span>
-                    <span id="cart-total">৳০</span>
-                </div>
-                <button id="checkout-btn" class="w-full mt-4 bg-yellow-500 hover:bg-yellow-600 font-bold py-3 px-4 rounded-lg transition duration-300" data-lang-key="cart_checkout">চেকআউট করুন</button>
-            </div>
-        </div>
-    </div>
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     
-    <!-- Payment Modal -->
-    <div id="payment-modal" class="modal-overlay">
-        <div class="modal-content">
-            <button data-action="closeModal" data-modal-id="payment-modal" class="absolute top-4 right-4 hover:text-white text-2xl font-bold">&times;</button>
-            <h3 class="text-2xl font-bold text-center mb-4" data-lang-key="payment_title">পেমেন্ট সম্পন্ন করুন</h3>
-            <div class="text-center p-4 bg-gray-800 rounded-lg">
-                <p data-lang-key="payment_instruction_1">নিচের নম্বরে সর্বমোট <strong id="payment-amount" class="text-yellow-400"></strong> টাকা পাঠান।</p>
-                <p id="gateway-number" class="text-2xl font-bold my-2 text-green-400">লোড হচ্ছে...</p>
-                <p class="text-sm" data-lang-key="payment_instruction_2">(এটি একটি <span id="gateway-name"></span> নম্বর, পেমেন্ট অপশন ব্যবহার করুন)</p>
-            </div>
-            <form id="payment-form" class="space-y-4 mt-6">
-                 <input id="payment-phone" type="text" placeholder="যে নম্বর থেকে টাকা পাঠিয়েছেন" class="w-full bg-gray-800 p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500" required>
-                 <input id="payment-trxid" type="text" placeholder="ট্রানজকশন আইডি (TrxID)" class="w-full bg-gray-800 p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500" required>
-                 <button type="submit" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg transition" data-lang-key="payment_confirm_btn">অর্ডার কনফার্ম করুন</button>
-            </form>
-        </div>
-    </div>
-
-    <!-- Terms Modal -->
-    <div id="terms-modal" class="modal-overlay">
-        <div class="modal-content max-w-2xl">
-            <button data-action="closeModal" data-modal-id="terms-modal" class="absolute top-4 right-4 hover:text-white text-2xl font-bold">&times;</button>
-            <h3 class="text-2xl font-bold text-center mb-6" data-lang-key="terms_title">টার্মস এন্ড কন্ডিশনস</h3>
-            <div class="space-y-4 max-h-96 overflow-y-auto pr-4">
-                <p data-lang-key="terms_p1">আমাদের ওয়েবসাইটে আপনাকে স্বাগতম। এই সাইট ব্যবহার করার মাধ্যমে, আপনি আমাদের শর্তাবলীর সাথে একমত হচ্ছেন।</p>
-                <p data-lang-key="terms_p2">যেকোনো পণ্য কেনার আগে তার বিবরণ ভালোভাবে পড়ে নিন। ডিজিটাল পণ্য হওয়ায় কোনো রিফান্ডের ব্যবস্থা নেই। আমাদের কন্টেন্ট কপি করা নিষিদ্ধ।</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- Product Details Modal -->
-    <div id="product-details-modal" class="modal-overlay">
-        <div class="modal-content max-w-3xl">
-            <button data-action="closeModal" data-modal-id="product-details-modal" class="absolute top-4 right-4 hover:text-white text-2xl font-bold">&times;</button>
-            <div id="product-details-content" class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div>
-                    <img id="details-img" src="https://placehold.co/600x400/1e293b/ffffff?text=Product" class="w-full h-auto object-cover rounded-lg mb-4">
-                     <div class="grid grid-cols-2 gap-2">
-                         <button data-action="addToCart" id="details-add-to-cart-btn" class="w-full bg-yellow-500 hover:bg-yellow-600 font-bold py-2 px-3 rounded-lg transition duration-300 text-sm" data-lang-key="add_to_cart_btn"></button>
-                         <button data-action="buyNow" id="details-buy-now-btn" class="w-full bg-gray-600 hover:bg-gray-700 font-bold py-2 px-3 rounded-lg transition duration-300 text-sm" data-lang-key="buy_now_btn"></button>
-                    </div>
-                </div>
-                <div class="max-h-[70vh] overflow-y-auto pr-4">
-                    <h3 id="details-name" class="text-3xl font-bold mb-2"></h3>
-                    <p class="text-2xl font-semibold text-yellow-400 mb-4"><span id="details-price"></span></p>
-                    <p class="mb-4"><strong data-lang-key="details_category">ক্যাটেগরি:</strong> <span id="details-category"></span></p>
-                    <p id="details-desc" class="text-gray-300 mb-6"></p>
-
-                    <!-- Reviews Section -->
-                    <div class="border-t border-gray-700 pt-6">
-                        <h4 class="text-xl font-semibold mb-4" data-lang-key="reviews_title">কাস্টমার রিভিউ</h4>
-                        <div id="reviews-list" class="space-y-4 mb-6">
-                            <!-- Reviews will be rendered here -->
-                        </div>
-                        <div id="review-form-container">
-                            <!-- Review form for logged in users -->
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
     
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signInWithCustomToken, signInAnonymously, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, getDocs, onSnapshot, addDoc, deleteDoc, doc, setDoc, getDoc, query, where, serverTimestamp, writeBatch, updateDoc, increment } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    <!-- Lucide React Icons (Stable Version) -->
+    <script src="https://unpkg.com/lucide-react@0.263.1/dist/umd/lucide-react.min.js"></script>
+    
+    <!-- Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 
-        // --- Configuration and Initialization ---
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfigString = typeof __firebase_config !== 'undefined' ? __firebase_config : null;
-        const ADMIN_UID = "j2GRnToF2BM3s2u1lqG2yVf4Q5C2"; // Placeholder Admin UID
-        
-        const firebaseConfig = firebaseConfigString ? JSON.parse(firebaseConfigString) : { /* Fallback config */
-            apiKey: "AIzaSyB6rH8V0TClZ_aigoUBPrS8BFzscG9_Dz8",
-            authDomain: "e-site-62560.firebaseapp.com",
-            databaseURL: "https://e-site-62560-default-rtdb.firebaseio.com",
-            projectId: "e-site-62560",
-            storageBucket: "e-site-62560.firebasestorage.app",
-            messagingSenderId: "823317877501",
-            appId: "1:823317877501:web:112d400e1f45533613a494",
-            measurementId: "G-V5933K4NYK"
-        };
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-        
-        // --- Global Variables and State ---
-        let app, auth, db;
-        let notificationTimeout;
-        
-        const state = {
-            products: [], banners: [], cart: [], favorites: [], user: null, userProfile: null, siteSettings: null, allOrders: [],
-            currentCategory: 'All', searchTerm: '', checkoutItems: [], selectedCartItemIds: new Set(),
-            currentOpenProduct: null,
-            unsubscribers: {
-                reviews: () => {}, products: () => {}, banners: () => {}, cart: () => {}, favorites: () => {}, orders: () => {}, siteSettings: () => {}, allOrders: () => {}
-            }
-        };
-
-        const translations = {
-            bn: { site_title: "পছন্দের শপ", nav_home: "হোম", nav_products: "প্রোডাক্টস", nav_sell: "পণ্য সেল করুন", nav_account: "আমার অ্যাকাউন্ট", search_placeholder: "প্রোডাক্ট খুঁজুন...", login_btn: "লগইন", logout_btn: "লগআউট", hero_title: "আপনার প্রয়োজনীয় সকল ডিজিটাল প্রোডাক্টস", hero_subtitle: "ওয়েব টেমপ্লেট, গ্রাফিক্স ডিজাইন, সফটওয়্যার এবং আরও অনেক কিছু, সবই এক জায়গায়।", hero_button: "প্রোডাক্ট দেখুন", products_title: "আমাদের সেরা প্রোডাক্টস", footer_terms: "টার্মস এন্ড কন্ডিশনস", footer_copyright: "© ২০২৫ পছন্দের শপ। সর্বসত্ত্ব সংরক্ষিত।", footer_support: "সাপোর্ট", terms_title: "টার্মস এন্ড কন্ডিশনস", terms_p1: "আমাদের ওয়েবসাইটে আপনাকে স্বাগতম। এই সাইট ব্যবহার করার মাধ্যমে, আপনি আমাদের শর্তাবলীর সাথে একমত হচ্ছেন।", terms_p2: "যেকোনো পণ্য কেনার আগে তার বিবরণ ভালোভাবে পড়ে নিন। ডিজিটাল পণ্য হওয়ায় কোনো রিফান্ডের ব্যবস্থা নেই। আমাদের কন্টেন্ট কপি করা নিষিদ্ধ।", slide1_title: "সকল ওয়েব টেমপ্লেটে ৫০% ছাড়!", slide1_desc: "আপনার স্বপ্নের ওয়েবসাইট বানান আমাদের প্রিমিয়াম টেমপ্লেট দিয়ে।", slide2_title: "এসে গেছে নতুন গ্রাফিক্স ডিজাইন কালেকশন", slide2_desc: "আপনার প্রজেক্টকে ফুটিয়ে তুলুন নতুন আঙ্গিকে।", login_title: "স্বাগতম!", login_form_btn: "লগইন করুন", login_no_account: "অ্যাকাউন্ট নেই?", login_create_account: "এখনি তৈরি করুন", register_title: "অ্যাকাউন্ট তৈরি করুন", register_form_btn: "রেজিস্টার করুন", register_has_account: "ইতিমধ্যে অ্যাকাউন্ট আছে?", register_login: "লগইন করুন", register_terms_agree: "আমি", dashboard_title: "আমার অ্যাকাউন্ট ড্যাশবোর্ড", dashboard_nav_orders: "আমার অর্ডার", dashboard_nav_favorites: "ফেভারিট পণ্য", dashboard_nav_upload: "আপনার পণ্য আপলোড করুন", dashboard_nav_settings: "সেটিংস", dashboard_nav_site_settings: "সাইট সেটিংস", dashboard_nav_all_orders: "সকল অর্ডার", site_settings_title: "সাইট পেমেন্ট সেটিংস", site_settings_desc: "গ্রাহকদের কাছ থেকে পেমেন্ট গ্রহণের জন্য এখানে আপনার পেমেন্ট গেটওয়ের তথ্য দিন।", orders_title: "অর্ডার হিস্টোরি", all_orders_title: "সকল কাস্টমার অর্ডার", orders_none: "আপনার কোনো অর্ডার নেই।", favorites_title: "আপনার ফেভারিট পণ্য", favorites_none: "আপনার পছন্দের তালিকা খালি।", upload_title: "নতুন পণ্য যোগ করুন", upload_button: "পণ্য আপলোড করুন", settings_title: "অ্যাকাউন্ট সেটিংস", settings_optional_title: "ঐচ্ছিক তথ্য (প্রোফাইল পূর্ণ করুন)", payout_title: "পেমেন্ট পাওয়ার তথ্য", payout_desc: "আপনার পণ্য বিক্রি হলে, আমরা নিচের তথ্যে আপনাকে পেমেন্ট পাঠাব।", payout_save_btn: "তথ্য সেভ করুন", add_to_cart_btn: "কার্টে যোগ করুন", buy_now_btn: "এখনই কিনুন", cart_title: "আপনার কার্ট", cart_total: "নির্বাচিত মোট:", cart_checkout: "চেকআউট করুন", cart_empty: "আপনার কার্ট খালি।", payment_title: "পেমেন্ট সম্পন্ন করুন", payment_instruction_1: "নিচের নম্বরে সর্বমোট", payment_instruction_2: "(এটি একটি মার্চেন্ট নম্বর, পেমেন্ট অপশন ব্যবহার করুন)", payment_confirm_btn: "অর্ডার কনফার্ম করুন", loading_text: "লোড হচ্ছে...", critical_error: "একটি গুরুতর সমস্যা হয়েছে। অনুগ্রহ করে পৃষ্ঠাটি রিফ্রেশ করুন।", details_category: "ক্যাটেগরি", reviews_title: "কাস্টমার রিভিউ", reviews_none: "এখনো কোনো রিভিউ নেই।", review_form_title: "আপনার রিভিউ দিন", review_form_placeholder: "আপনার মতামত লিখুন...", review_form_submit: "রিভিউ জমা দিন", product_views: "ভিউ" },
-            en: { site_title: "Pochonder Shop", nav_home: "Home", nav_products: "Products", nav_sell: "Sell Product", nav_account: "My Account", search_placeholder: "Search for products...", login_btn: "Login", logout_btn: "Logout", hero_title: "All The Digital Products You Need", hero_subtitle: "Web templates, graphic designs, software, and much more, all in one place.", hero_button: "Browse Products", products_title: "Our Best Products", footer_terms: "Terms & Conditions", footer_copyright: "© 2025 Pochonder Shop. All rights reserved.", footer_support: "Support", terms_title: "Terms & Conditions", terms_p1: "Welcome to our website. By using this site, you agree to our terms and conditions.", terms_p2: "Please read the product descriptions carefully before purchasing. As these are digital products, there are no refunds. Copying our content is prohibited.", slide1_title: "50% Off On All Web Templates!", slide1_desc: "Build your dream website with our premium templates.", slide2_title: "New Graphics Design Collection Arrived", slide2_desc: "Elevate your project with a fresh new look.", login_title: "Welcome!", login_form_btn: "Log In", login_no_account: "No account?", login_create_account: "Create one now", register_title: "Create Account", register_form_btn: "Register", register_has_account: "Already have an account?", register_login: "Log In", register_terms_agree: "I agree to the", dashboard_title: "My Account Dashboard", dashboard_nav_orders: "My Orders", dashboard_nav_favorites: "Favorite Products", dashboard_nav_upload: "Upload Your Product", dashboard_nav_settings: "Settings", dashboard_nav_site_settings: "Site Settings", dashboard_nav_all_orders: "All Orders", site_settings_title: "Site Payment Settings", site_settings_desc: "Provide your payment gateway information here to receive payments from customers.", orders_title: "Order History", all_orders_title: "All Customer Orders", orders_none: "You have no orders.", favorites_title: "Your Favorite Products", favorites_none: "Your favorites list is empty.", upload_title: "Add New Product", upload_button: "Upload Product", settings_title: "Account Settings", settings_optional_title: "Optional Info (Complete Profile)", payout_title: "Payout Information", payout_desc: "When your product sells, we will send the payment to the details below.", payout_save_btn: "Save Information", add_to_cart_btn: "Add to Cart", buy_now_btn: "Buy Now", cart_title: "Your Cart", cart_total: "Selected Total:", cart_checkout: "Checkout", cart_empty: "Your cart is empty.", payment_title: "Complete Payment", payment_instruction_1: "Please send a total of", payment_instruction_2: "(This is a merchant number, please use the Payment option)", payment_confirm_btn: "Confirm Order", loading_text: "Loading...", critical_error: "A critical error has occurred. Please refresh the page.", details_category: "Category", reviews_title: "Customer Reviews", reviews_none: "No reviews yet.", review_form_title: "Leave a Review", review_form_placeholder: "Write your opinion...", review_form_submit: "Submit Review", product_views: "Views" }
-        };
-
-        // --- Utility Functions ---
-        function showNotification(message, type = 'success') {
-            const el = document.getElementById('notification');
-            if (!el) return;
-            if (notificationTimeout) clearTimeout(notificationTimeout);
-            el.innerText = message;
-            el.style.backgroundColor = type === 'success' ? '#10B981' : '#EF4444';
-            el.classList.add('show');
-            notificationTimeout = setTimeout(() => el.classList.remove('show'), 3000);
-        }
-
-        // --- UI & Rendering Functions ---
-        
-        function setLanguage(lang) {
-            if (!['bn', 'en'].includes(lang)) lang = 'bn';
-            localStorage.setItem('language', lang);
-            document.documentElement.lang = lang;
-            document.querySelectorAll('[data-lang-key]').forEach(el => {
-                const key = el.dataset.langKey;
-                const text = translations[lang][key];
-                if (text) {
-                    if (el.placeholder) el.placeholder = text;
-                    else if (key === 'register_terms_agree') {
-                         el.innerHTML = `${text} <a href="#" data-action="openModal" data-modal-id="terms-modal" class="text-yellow-400 hover:underline">${translations[lang]['footer_terms']}</a>`;
-                    } else el.innerText = text;
-                }
-            });
-            document.getElementById('lang-bn').classList.toggle('bg-yellow-500', lang === 'bn');
-            document.getElementById('lang-bn').classList.toggle('text-black', lang === 'bn');
-            document.getElementById('lang-en').classList.toggle('bg-yellow-500', lang === 'en');
-            document.getElementById('lang-en').classList.toggle('text-black', lang === 'en');
-            updateUIForAuthState(state.user);
-        }
-        
-        function applyTheme(theme) {
-            const body = document.body;
-            const sunIcon = document.getElementById('sun-icon');
-            const moonIcon = document.getElementById('moon-icon');
-            if (theme === 'light') {
-                body.classList.add('light-mode');
-                moonIcon.classList.add('hidden');
-                sunIcon.classList.remove('hidden');
-            } else {
-                body.classList.remove('light-mode');
-                sunIcon.classList.add('hidden');
-                moonIcon.classList.remove('hidden');
-            }
-            localStorage.setItem('theme', theme);
-        }
-
-        function updateUIForAuthState(user) {
-            const authBtn = document.getElementById('auth-btn');
-            const lang = localStorage.getItem('language') || 'bn';
-            
-            if (user && !user.isAnonymous) {
-                authBtn.dataset.langKey = 'logout_btn';
-                authBtn.innerText = translations[lang]['logout_btn'];
-            } else {
-                authBtn.dataset.langKey = 'login_btn';
-                authBtn.innerText = translations[lang]['login_btn'];
-                document.getElementById('main-content').classList.remove('hidden');
-                document.getElementById('dashboard').classList.add('hidden');
-            }
-
-            document.getElementById('all-orders-nav-btn').classList.toggle('hidden', !user || user.uid !== ADMIN_UID);
-        }
-
-        function renderProducts() {
-            const listEl = document.getElementById('product-list');
-            const loadingIndicator = document.getElementById('loading-indicator');
-            if(loadingIndicator) loadingIndicator.style.display = 'none';
-
-            listEl.innerHTML = '';
-            const filtered = state.products.filter(p => (state.currentCategory === 'All' || p.category === state.currentCategory) && p.name.toLowerCase().includes(state.searchTerm.toLowerCase()));
-            
-            if (filtered.length === 0) {
-                listEl.innerHTML = `<p class="text-center col-span-full">কোনো প্রোডাক্ট পাওয়া যায়নি।</p>`;
-                return;
-            }
-
-            filtered.forEach(p => {
-                const isFav = state.favorites.includes(p.id);
-                const originalPriceHTML = p.originalPrice ? `<del class="text-sm">৳${p.originalPrice.toLocaleString('bn-BD')}</del>` : '';
-                const card = document.createElement('div');
-                card.className = "glass-effect rounded-lg overflow-hidden shadow-lg flex flex-col transform hover:scale-105 transition-transform duration-300";
-                card.dataset.productId = p.id;
-                card.innerHTML = `
-                    <div class="relative">
-                         <img data-action="openDetails" class="w-full h-52 object-cover cursor-pointer" src="${p.image}" alt="${p.name}" onerror="this.onerror=null;this.src='https://placehold.co/600x400/1e293b/ffffff?text=Image+Error';">
-                         ${p.originalPrice ? `<span class="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">SALE</span>` : ''}
-                         <button data-action="toggleFavorite" class="favorite-btn absolute top-2 right-2 hover:text-red-500 transition ${isFav ? 'favorited' : ''} z-10">
-                             <svg class="w-6 h-6 pointer-events-none" xmlns="http://www.w3.org/2000/svg" ${isFav ? 'fill="currentColor"' : 'fill="none"'} viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" /></svg>
-                         </button>
-                    </div>
-                    <div class="p-4 flex-grow flex flex-col">
-                        <h4 data-action="openDetails" class="text-lg font-bold mb-2 flex-grow cursor-pointer">${p.name}</h4>
-                        <div class="flex justify-between items-center text-sm text-gray-400 mb-3">
-                            <span>${p.category}</span>
-                            <span class="flex items-center gap-1">
-                                <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /></svg>
-                                ${p.views || 0}
-                            </span>
-                        </div>
-                        <div class="flex items-baseline gap-2 mb-4">
-                            <p class="text-xl font-semibold text-yellow-400">৳${p.price.toLocaleString('bn-BD')}</p>
-                            ${originalPriceHTML}
-                        </div>
-                        <div class="mt-auto grid grid-cols-2 gap-2">
-                            <button data-action="addToCart" class="w-full bg-yellow-500 hover:bg-yellow-600 font-bold py-2 px-3 rounded-lg transition duration-300 text-sm" data-lang-key="add_to_cart_btn"></button>
-                            <button data-action="buyNow" class="w-full bg-gray-600 hover:bg-gray-700 font-bold py-2 px-3 rounded-lg transition duration-300 text-sm" data-lang-key="buy_now_btn"></button>
-                        </div>
-                    </div>`;
-                listEl.appendChild(card);
-            });
-            setLanguage(localStorage.getItem('language') || 'bn');
-        }
-
-        function renderCart() {
-            const itemsEl = document.getElementById('cart-items');
-            const totalEl = document.getElementById('cart-total');
-            itemsEl.innerHTML = '';
-            let selectedTotal = 0;
-
-            if (state.cart.length === 0) {
-                itemsEl.innerHTML = `<p data-lang-key="cart_empty"></p>`;
-            } else {
-                state.cart.forEach(item => {
-                    const product = state.products.find(p => p.id === item.productId);
-                    if (!product) return;
-
-                    const isSelected = state.selectedCartItemIds.has(item.id);
-                    if (isSelected) {
-                        selectedTotal += product.price * item.quantity;
+    <!-- Custom Tailwind Config -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.5s ease-out',
+                        'fade-in-down': 'fadeInDown 0.5s ease-out',
+                        'marquee': 'marquee 25s linear infinite',
+                        'bounce-slow': 'bounce 3s infinite',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        },
+                        fadeInDown: {
+                            '0%': { opacity: '0', transform: 'translateY(-20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        marquee: {
+                            '0%': { transform: 'translateX(100%)' },
+                            '100%': { transform: 'translateX(-100%)' },
+                        }
                     }
-
-                    const itemEl = document.createElement('div');
-                    itemEl.className = 'flex items-center gap-4 p-2 rounded-md hover:bg-gray-800 transition';
-                    itemEl.innerHTML = `
-                        <input type="checkbox" data-action="toggleCartItemSelection" data-cart-item-id="${item.id}" class="cart-item-checkbox h-5 w-5 flex-shrink-0 rounded bg-gray-700 border-gray-600 text-yellow-500 focus:ring-yellow-600 cursor-pointer" ${isSelected ? 'checked' : ''}>
-                        <img src="${product.image}" class="w-16 h-16 object-cover rounded-md">
-                        <div class="flex-grow">
-                            <h5 class="font-semibold">${product.name}</h5>
-                            <p class="text-sm">${item.quantity} x ৳${product.price.toLocaleString('bn-BD')}</p>
-                        </div>
-                        <button data-action="removeFromCart" data-cart-id="${item.id}" class="text-red-500 hover:text-red-400 text-2xl">&times;</button>
-                    `;
-                    itemsEl.appendChild(itemEl);
-                });
+                }
             }
-            
-            totalEl.innerText = `৳${selectedTotal.toLocaleString('bn-BD')}`;
-            document.getElementById('checkout-btn').disabled = state.selectedCartItemIds.size === 0;
-            setLanguage(localStorage.getItem('language') || 'bn');
         }
-       
-        function renderFavoritesInDashboard() {
-            const favListEl = document.getElementById('favorites-list');
-            favListEl.innerHTML = '';
-            const favoritedProducts = state.products.filter(p => state.favorites.includes(p.id));
-            if (favoritedProducts.length === 0) {
-                favListEl.innerHTML = `<p class="col-span-full" data-lang-key="favorites_none"></p>`;
-            } else {
-                favoritedProducts.forEach(p => {
-                    const card = document.createElement('div');
-                    card.className = "glass-effect rounded-lg p-4 flex flex-col";
-                    card.innerHTML = `
-                        <img src="${p.image}" class="w-full h-32 object-cover rounded-md mb-3">
-                        <h5 class="font-semibold flex-grow">${p.name}</h5>
-                        <p class="text-yellow-400 mt-1">৳${p.price.toLocaleString('bn-BD')}</p>`;
-                    favListEl.appendChild(card);
-                });
+    </script>
+</head>
+<body class="bg-slate-50 text-slate-800 transition-colors duration-300">
+    
+    <!-- Error Overlay -->
+    <div id="error-overlay">
+        <h2 style="font-size: 20px; font-weight: bold; margin-bottom: 10px;">System Error</h2>
+        <p>Something went wrong. Please refresh the page.</p>
+        <pre id="error-msg" style="background: #f0f0f0; padding: 15px; border-radius: 8px; overflow: auto; margin-top: 15px; font-size: 12px;"></pre>
+    </div>
+
+    <!-- Root Element -->
+    <div id="root">
+        <div class="loading">Loading System...</div>
+    </div>
+
+    <!-- Error Handler Script -->
+    <script>
+        window.onerror = function(message, source, lineno, colno, error) {
+            document.getElementById('error-overlay').style.display = 'block';
+            document.getElementById('error-msg').innerText = "Msg: " + message + "\nLine: " + lineno;
+        };
+    </script>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        
+        // --- SAFE ICON RETRIEVAL ---
+        const Icons = window.lucideReact || {};
+        const getIcon = (name) => {
+            const IconComponent = Icons[name];
+            return IconComponent ? IconComponent : () => <span className="text-xs text-red-500">?</span>;
+        };
+
+        // Icons mapping
+        const ArrowRightLeft = getIcon('ArrowRightLeft');
+        const Settings = getIcon('Settings');
+        const User = getIcon('User');
+        const Package = getIcon('Package');
+        const Plus = getIcon('Plus');
+        const CheckCircle = getIcon('CheckCircle');
+        const Clock = getIcon('Clock');
+        const Trash2 = getIcon('Trash2');
+        const Copy = getIcon('Copy');
+        const LogOut = getIcon('LogOut');
+        const Bell = getIcon('Bell');
+        const ShieldAlert = getIcon('ShieldAlert');
+        const Zap = getIcon('Zap');
+        const Moon = getIcon('Moon');
+        const Sun = getIcon('Sun');
+        const MessageCircle = getIcon('MessageCircle');
+        const LayoutDashboard = getIcon('LayoutDashboard');
+        const List = getIcon('List');
+        const Sliders = getIcon('Sliders');
+        const Search = getIcon('Search');
+        const X = getIcon('X');
+        const Menu = getIcon('Menu');
+        const LogIn = getIcon('LogIn');
+        const AlertTriangle = getIcon('AlertTriangle');
+        const Check = getIcon('Check');
+        const ArrowRight = getIcon('ArrowRight');
+        const Wallet = getIcon('Wallet');
+        const FileText = getIcon('FileText');
+        const Phone = getIcon('Phone');
+
+        // --- DATA & TRANSLATIONS ---
+        const translations = {
+            en: {
+                nav_home: "Home",
+                nav_track: "Track Order",
+                nav_admin: "Admin Panel",
+                hero_title: "Trusted Exchange",
+                hero_subtitle: "Safe, Fast & Automated - 24/7 Support",
+                send: "You Send",
+                receive: "You Receive",
+                reserve: "Reserve",
+                exchange_btn: "Proceed to Exchange",
+                confirm_btn: "Confirm Payment",
+                rate_title: "Today's Rates",
+                login_title: "Admin Access",
+                dashboard_title: "Order History",
+                admin_dash: "Dashboard",
+                admin_orders: "Orders",
+                admin_methods: "Methods",
+                admin_settings: "Settings",
+                step1: "Calculator",
+                step2: "Transfer",
+                step3: "Done",
+                pay_instruction: "Please make payment to the details below:",
+                product_instruction: "Please provide the product details/credentials below:",
+                trx_label: "Enter TrxID / Sender Number",
+                product_label: "Enter Email:Pass or Product Data",
+                binance_warning: "Minimum 1000 BDT required for Binance/USDT withdrawals."
+            },
+            bn: {
+                nav_home: "হোম",
+                nav_track: "অর্ডার ট্র্যাক",
+                nav_admin: "এডমিন প্যানেল",
+                hero_title: "বিশ্বস্ত এক্সচেঞ্জ",
+                hero_subtitle: "নিরাপদ এবং অটোমেটেড - ২৪/৭ সাপোর্ট",
+                send: "আপনি পাঠাবেন",
+                receive: "আপনি পাবেন",
+                reserve: "রিজার্ভ",
+                exchange_btn: "পরবর্তী ধাপ",
+                confirm_btn: "অর্ডার কনফার্ম করুন",
+                rate_title: "আজকের রেট",
+                login_title: "এডমিন এক্সেস",
+                dashboard_title: "অর্ডার হিস্টোরি",
+                admin_dash: "ড্যাশবোর্ড",
+                admin_orders: "অর্ডার",
+                admin_methods: "মেথড",
+                admin_settings: "সেটিংস",
+                step1: "হিসাব",
+                step2: "ট্রান্সফার",
+                step3: "সম্পন্ন",
+                pay_instruction: "নিচের নাম্বারে টাকা পাঠিয়ে তথ্য দিন:",
+                product_instruction: "নিচে প্রোডাক্ট ডিটেইলস বা একাউন্ট তথ্য দিন:",
+                trx_label: "TrxID বা সেন্ডার নাম্বার দিন",
+                product_label: "এখানে Email:Pass বা ডাটা দিন",
+                binance_warning: "Binance/USDT তে নিতে হলে মিনিমাম ১০০০ টাকার অর্ডার হতে হবে।"
             }
-            setLanguage(localStorage.getItem('language') || 'bn');
-        }
-        
-        function renderOrders(orders) {
-            const ordersListEl = document.getElementById('orders-list');
-            if (!ordersListEl) return;
-            ordersListEl.innerHTML = '';
-            if (orders.length === 0) {
-                ordersListEl.innerHTML = `<p data-lang-key="orders_none"></p>`;
-                setLanguage(localStorage.getItem('language') || 'bn');
-                return;
-            }
+        };
 
-            orders.sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis());
+        const initialServices = [
+            { id: 1, name: "bKash Personal", type: "currency", unit_name: "BDT", buy_rate: 1, sell_rate: 1, reserve: 50000, min_limit: 100, max_limit: 25000, user_input_label: "Your bKash Number", payment_details: "01722051341 (Personal)", color: "bg-pink-600" },
+            { id: 2, name: "Nagad Personal", type: "currency", unit_name: "BDT", buy_rate: 1, sell_rate: 1, reserve: 30000, min_limit: 100, max_limit: 25000, user_input_label: "Your Nagad Number", payment_details: "01722051341 (Personal)", color: "bg-orange-500" },
+            { id: 3, name: "Rocket Personal", type: "currency", unit_name: "BDT", buy_rate: 1, sell_rate: 1, reserve: 20000, min_limit: 100, max_limit: 25000, user_input_label: "Your Rocket Number", payment_details: "01722051341 (Personal)", color: "bg-purple-500" },
+            { id: 4, name: "Binance / USDT", type: "currency", unit_name: "USD", buy_rate: 115, sell_rate: 122, reserve: 1000, min_limit: 10, max_limit: 500, user_input_label: "Your Binance UID/PayID", payment_details: "Contact Admin", color: "bg-yellow-500" },
+            { id: 5, name: "Gmail (Fresh)", type: "account", unit_name: "Pcs", buy_rate: 10, sell_rate: 15, reserve: 50, min_limit: 1, max_limit: 20, user_input_label: "Your bKash/Nagad for Payment", payment_details: "N/A", color: "bg-red-500" },
+        ];
 
-            orders.forEach(order => {
-                const orderDate = order.createdAt ? order.createdAt.toDate().toLocaleString('bn-BD', { dateStyle: 'long', timeStyle: 'short' }) : 'N/A';
-                
-                const itemsDetails = order.items.map(item => {
-                    const product = state.products.find(p => p.id === item.productId);
-                    return product ? `<li>${product.name} (x${item.quantity})</li>` : `<li>Product ID: ${item.productId}</li>`;
-                }).join('');
+        const initialOrders = [
+            { id: "ORD-1001", sendServiceId: 1, receiveServiceId: 4, sendAmount: 1220, receiveAmount: 10, userData: "12345678 (UID)", trxId: "8HG7...", status: "pending", deliveryData: "", date: "2024-05-20 10:30 AM" },
+            { id: "ORD-1002", sendServiceId: 5, receiveServiceId: 1, sendAmount: 5, receiveAmount: 50, userData: "017XX...", trxId: "Product Data Sent", status: "completed", deliveryData: "Payment Sent via bKash", date: "2024-05-21 02:15 PM" },
+            { id: "ORD-1003", sendServiceId: 1, receiveServiceId: 2, sendAmount: 500, receiveAmount: 500, userData: "019XX...", trxId: "Invalid Trx", status: "cancelled", deliveryData: "Fake TrxID", date: "2024-05-22 09:00 AM" }
+        ];
 
-                const statusClass = order.status === 'pending' ? 'bg-yellow-500' : (order.status === 'completed' ? 'bg-green-500 text-white' : 'bg-red-500 text-white');
-                const statusText = order.status || 'N/A';
+        // --- TOAST COMPONENT ---
+        const Toast = ({ message, type, onClose }) => (
+            <div className={`fixed top-4 right-4 z-[100] flex items-center gap-3 px-4 py-3 rounded-xl shadow-2xl animate-fade-in-down ${type === 'success' ? 'bg-green-600 text-white' : type === 'error' ? 'bg-red-600 text-white' : 'bg-amber-500 text-white'}`}>
+                {type === 'success' ? <CheckCircle size={20}/> : <AlertTriangle size={20}/>}
+                <span className="font-bold text-sm">{message}</span>
+                <button onClick={onClose}><X size={16} className="opacity-70 hover:opacity-100"/></button>
+            </div>
+        );
 
-                const orderEl = document.createElement('div');
-                orderEl.className = 'border-b border-gray-700 py-4 last:border-b-0';
-                orderEl.innerHTML = `
-                    <div class="flex justify-between items-start flex-wrap">
-                        <div>
-                            <p class="font-bold text-base">অর্ডার আইডি:</p>
-                            <p class="text-xs mb-2">${order.id}</p>
-                            <p class="text-sm">তারিখ: ${orderDate}</p>
-                        </div>
-                        <div class="text-right mt-2 sm:mt-0">
-                            <p class="font-bold text-lg text-yellow-400">৳${order.totalAmount.toLocaleString('bn-BD')}</p>
-                            <span class="text-xs font-semibold px-2 py-1 rounded-full ${statusClass}">${statusText}</span>
-                        </div>
+        // --- MAIN APP COMPONENT ---
+        function App() {
+            // States
+            const [darkMode, setDarkMode] = useState(false);
+            const [lang, setLang] = useState('bn');
+            const [view, setView] = useState('home'); 
+            const [services, setServices] = useState(initialServices);
+            const [orders, setOrders] = useState(initialOrders);
+            const [notice, setNotice] = useState("🔥 Hot Offer: USDT রেট কমেছে! এখনই কিনুন। Gmail ডেলিভারি মাত্র ৫ মিনিটে।");
+            const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+            const [toasts, setToasts] = useState([]);
+
+            // Auth
+            const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
+            const [loginUser, setLoginUser] = useState('');
+            const [loginPass, setLoginPass] = useState('');
+
+            // Exchange
+            const [exchangeStep, setExchangeStep] = useState(1);
+            const [sendId, setSendId] = useState(1);
+            const [receiveId, setReceiveId] = useState(2);
+            const [sendAmount, setSendAmount] = useState('');
+            const [receiveAmount, setReceiveAmount] = useState('');
+            const [userInput, setUserInput] = useState(''); 
+            const [trxInput, setTrxInput] = useState(''); 
+
+            // Admin Actions
+            const [adminTab, setAdminTab] = useState('dashboard');
+            const [showAddMethodForm, setShowAddMethodForm] = useState(false);
+            const [showManualOrderForm, setShowManualOrderForm] = useState(false);
+
+            // Helpers
+            const t = translations[lang];
+            const sendService = services.find(s => s.id === parseInt(sendId)) || services[0];
+            const receiveService = services.find(s => s.id === parseInt(receiveId)) || services[1];
+            const adminWhatsApp = "8801722051341";
+
+            // --- FUNCTIONS ---
+            const addToast = (msg, type = 'success') => {
+                const id = Date.now();
+                setToasts([...toasts, { id, msg, type }]);
+                setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 4000);
+            };
+            const removeToast = (id) => setToasts(prev => prev.filter(t => t.id !== id));
+            const toggleTheme = () => setDarkMode(!darkMode);
+            const toggleLang = () => setLang(lang === 'bn' ? 'en' : 'bn');
+
+            const handleAdminLogin = (e) => {
+                e.preventDefault();
+                if(loginUser === 'admin' && loginPass === '1234') {
+                    setIsAdminLoggedIn(true);
+                    setView('admin');
+                    addToast("Welcome Admin!", "success");
+                } else {
+                    addToast("Invalid Credentials!", "error");
+                }
+            };
+
+            const handleSendAmountChange = (val) => {
+                setSendAmount(val);
+                if (!val || isNaN(val)) { setReceiveAmount(''); return; }
+                const baseValue = parseFloat(val) * sendService.buy_rate; 
+                let estimatedReceive = baseValue / receiveService.sell_rate;
+                if (receiveService.type !== 'currency') estimatedReceive = Math.floor(estimatedReceive); 
+                else estimatedReceive = parseFloat(estimatedReceive.toFixed(4));
+                setReceiveAmount(estimatedReceive);
+            };
+
+            const handleReceiveAmountChange = (val) => {
+                if (receiveService.type !== 'currency' && val.includes('.')) return;
+                setReceiveAmount(val);
+                if (!val || isNaN(val)) { setSendAmount(''); return; }
+                const requiredBase = parseFloat(val) * receiveService.sell_rate;
+                let requiredSend = requiredBase / sendService.buy_rate;
+                setSendAmount(parseFloat(requiredSend.toFixed(2)));
+            };
+
+            const handleNextStep = () => {
+                if(!sendAmount || !receiveAmount || !userInput) {
+                    addToast("Please fill all fields", "error");
+                    return;
+                }
+                const isBinanceReceive = receiveService.name.toLowerCase().includes('binance') || receiveService.name.toLowerCase().includes('usdt');
+                const valueInBDT = parseFloat(receiveAmount) * receiveService.sell_rate;
+                if (isBinanceReceive && valueInBDT < 1000) {
+                    addToast(t.binance_warning, "warning");
+                    return;
+                }
+                setExchangeStep(2);
+            };
+
+            const handleSubmitOrder = () => {
+                if(!trxInput) {
+                    addToast(sendService.type === 'account' ? "Please enter product details" : "Please enter TrxID", "error");
+                    return;
+                }
+                const newOrder = {
+                    id: `ORD-${Math.floor(Math.random() * 9000) + 1000}`,
+                    sendServiceId: sendService.id,
+                    receiveServiceId: receiveService.id,
+                    sendAmount: sendAmount,
+                    receiveAmount: receiveAmount,
+                    userData: userInput,
+                    trxId: trxInput,
+                    status: "pending",
+                    deliveryData: "",
+                    date: new Date().toLocaleString()
+                };
+                setOrders([newOrder, ...orders]);
+                setView('dashboard');
+                setUserInput('');
+                setTrxInput('');
+                setSendAmount('');
+                setReceiveAmount('');
+                setExchangeStep(1);
+                addToast("Order Submitted Successfully!", "success");
+            };
+
+            const handleAddService = (e) => {
+                e.preventDefault();
+                const formData = new FormData(e.target);
+                const newService = {
+                    id: Date.now(),
+                    name: formData.get('name'),
+                    type: formData.get('type'),
+                    unit_name: formData.get('unit'),
+                    buy_rate: parseFloat(formData.get('rate')),
+                    sell_rate: parseFloat(formData.get('rate')) * 1.1,
+                    reserve: 0,
+                    min_limit: 1,
+                    max_limit: 100,
+                    user_input_label: formData.get('label'),
+                    payment_details: formData.get('payment'),
+                    color: "bg-slate-500"
+                };
+                setServices([...services, newService]);
+                setShowAddMethodForm(false);
+                addToast("New Method Added!", "success");
+            };
+
+            const handleManualOrder = (e) => {
+                e.preventDefault();
+                const formData = new FormData(e.target);
+                const sId = parseInt(formData.get('sendId'));
+                const rId = parseInt(formData.get('receiveId'));
+                const amount = parseFloat(formData.get('amount'));
+                if(!amount || !sId || !rId) {
+                    addToast("Please check inputs", "error");
+                    return;
+                }
+                const sService = services.find(s => s.id === sId);
+                const rService = services.find(s => s.id === rId);
+                const newOrder = {
+                    id: `MAN-${Math.floor(Math.random() * 9000) + 1000}`,
+                    sendServiceId: sId,
+                    receiveServiceId: rId,
+                    sendAmount: amount,
+                    receiveAmount: (amount * sService.buy_rate / rService.sell_rate).toFixed(2),
+                    userData: formData.get('userData'),
+                    trxId: "Manual Entry",
+                    status: "completed",
+                    deliveryData: "Manual Delivery by Admin",
+                    date: new Date().toLocaleString()
+                };
+                setOrders([newOrder, ...orders]);
+                setShowManualOrderForm(false);
+                addToast("Manual Order Created!", "success");
+            };
+
+            const handleOrderUpdate = (id, field, value) => {
+                setOrders(prev => prev.map(o => o.id === id ? { ...o, [field]: value } : o));
+            };
+
+            const handleDeliverOrder = (orderId) => {
+                const input = document.getElementById(`d-${orderId}`);
+                if(!input || !input.value) {
+                    addToast("Please enter delivery data", "error");
+                    return;
+                }
+                const val = input.value;
+                setOrders(prev => prev.map(o => o.id === orderId ? {...o, status: 'completed', deliveryData: val} : o));
+                addToast("Order Approved & Delivered!", "success");
+            };
+
+            const handleCancelOrder = (orderId) => {
+                if(window.confirm("Are you sure you want to CANCEL this order?")) {
+                    setOrders(prev => prev.map(o => o.id === orderId ? {...o, status: 'cancelled'} : o));
+                    addToast("Order Cancelled!", "error");
+                }
+            };
+
+            const copyToClipboard = (text) => {
+                navigator.clipboard.writeText(text);
+                addToast("Copied!", "success");
+            };
+
+            const openWhatsApp = () => {
+                window.open(`https://wa.me/${adminWhatsApp}`, '_blank');
+            };
+
+            return (
+                <div className={`min-h-screen transition-colors duration-300 font-sans ${darkMode ? 'bg-slate-900 text-slate-100' : 'bg-slate-50 text-slate-800'}`}>
+                    
+                    {/* TOASTS */}
+                    <div className="z-[100] relative">
+                        {toasts.map(t => <Toast key={t.id} message={t.msg} type={t.type} onClose={() => removeToast(t.id)} />)}
                     </div>
-                    <div class="mt-3">
-                        <p class="font-semibold text-sm">ক্রয়কৃত পণ্য:</p>
-                        <ul class="list-disc list-inside text-sm pl-2">
-                            ${itemsDetails}
-                        </ul>
-                    </div>
-                `;
-                ordersListEl.appendChild(orderEl);
-            });
-        }
-        
-        function renderAllOrders(orders) {
-            const listEl = document.getElementById('all-orders-list');
-            listEl.innerHTML = '';
-             if (orders.length === 0) {
-                 listEl.innerHTML = `<p>কোনো অর্ডার পাওয়া যায়নি।</p>`;
-                 return;
-             }
-            orders.sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis());
-            orders.forEach(order => {
-                const orderDate = order.createdAt ? order.createdAt.toDate().toLocaleString('bn-BD') : 'N/A';
-                const orderEl = document.createElement('div');
-                orderEl.className = 'border-b border-gray-700 py-4 last:border-b-0';
-                orderEl.innerHTML = `
-                    <div class="flex justify-between items-start flex-wrap gap-4">
-                        <div>
-                            <p class="text-xs">ID: ${order.id}</p>
-                            <p class="text-sm"><strong>Date:</strong> ${orderDate}</p>
-                            <p class="text-sm"><strong>User ID:</strong> ${order.userId}</p>
-                            <p class="text-sm"><strong>Phone:</strong> ${order.paymentPhone}</p>
-                            <p class="text-sm"><strong>TrxID:</strong> ${order.paymentTrxId}</p>
-                        </div>
-                        <div class="text-right">
-                            <p class="font-bold text-lg text-yellow-400">৳${order.totalAmount.toLocaleString('bn-BD')}</p>
-                            <select data-action="updateOrderStatus" data-order-id="${order.id}" class="status-select bg-gray-800 text-white rounded-md p-1 mt-2">
-                                <option value="pending" ${order.status === 'pending' ? 'selected' : ''}>Pending</option>
-                                <option value="completed" ${order.status === 'completed' ? 'selected' : ''}>Completed</option>
-                                <option value="cancelled" ${order.status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
-                            </select>
-                        </div>
-                    </div>
-                `;
-                listEl.appendChild(orderEl);
-            });
-        }
-        
-        function renderBanners() {
-            const sliderContainer = document.getElementById('slider');
-            // Clear only slides, not nav buttons
-            const existingSlides = sliderContainer.querySelectorAll('.slide');
-            existingSlides.forEach(slide => slide.remove());
 
-            if (state.banners.length === 0) {
-                sliderContainer.insertAdjacentHTML('afterbegin', `
-                    <div class="slide active">
-                        <img src="https://placehold.co/1920x1080/111827/FBBF24?text=Pochonder+Shop" alt="Welcome">
-                        <div class="slide-content">
-                            <h2 class="text-3xl font-bold">পছন্দের শপে স্বাগতম</h2>
-                            <p>আপনার সব ডিজিটাল পণ্যের নির্ভরযোগ্য সমাধান।</p>
-                        </div>
-                    </div>
-                `);
-            } else {
-                [...state.banners].reverse().forEach((banner, index) => {
-                    const slideHTML = `
-                        <div class="slide ${index === 0 ? 'active' : ''}">
-                            <img src="${banner.image}" alt="${banner.title}" onerror="this.onerror=null;this.src='https://placehold.co/1920x1080/1e293b/ffffff?text=Image+Error';">
-                            <div class="slide-content">
-                                <h2 class="text-3xl font-bold">${banner.title}</h2>
-                                <p>${banner.description}</p>
+                    {/* --- NAVBAR SECTION --- */}
+                    <nav className={`sticky top-0 z-50 backdrop-blur-md border-b transition-colors duration-300 ${darkMode ? 'bg-slate-900/80 border-slate-700' : 'bg-white/80 border-slate-200'}`}>
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                            <div className="flex justify-between h-16 items-center">
+                                {/* LOGO */}
+                                <div className="flex items-center gap-2 cursor-pointer group" onClick={() => setView('home')}>
+                                    <div className="bg-gradient-to-tr from-indigo-600 to-purple-600 text-white p-2 rounded-xl shadow-lg transform group-hover:rotate-12 transition">
+                                        <ArrowRightLeft size={20} strokeWidth={3} />
+                                    </div>
+                                    <div>
+                                        <h1 className="font-black text-xl tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 to-purple-600">Deoya Neoya</h1>
+                                        <p className={`text-[10px] font-bold uppercase tracking-widest ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>Ultra Exchange</p>
+                                    </div>
+                                </div>
+
+                                {/* DESKTOP MENU */}
+                                <div className="hidden md:flex items-center space-x-2">
+                                    <button onClick={() => { setView('home'); setExchangeStep(1); }} className={`px-4 py-2 rounded-lg text-sm font-bold transition flex items-center gap-2 ${view === 'home' ? 'bg-indigo-600 text-white shadow-lg' : darkMode ? 'text-slate-300 hover:bg-slate-800' : 'text-slate-600 hover:bg-slate-100'}`}>
+                                        {t.nav_home}
+                                    </button>
+                                    <button onClick={() => setView('dashboard')} className={`px-4 py-2 rounded-lg text-sm font-bold transition flex items-center gap-2 ${view === 'dashboard' ? 'bg-indigo-600 text-white shadow-lg' : darkMode ? 'text-slate-300 hover:bg-slate-800' : 'text-slate-600 hover:bg-slate-100'}`}>
+                                        {t.nav_track}
+                                    </button>
+                                    <button onClick={() => setView(isAdminLoggedIn ? 'admin' : 'login')} className={`px-4 py-2 rounded-lg text-sm font-bold transition flex items-center gap-2 ${view === 'admin' || view === 'login' ? 'bg-indigo-600 text-white shadow-lg' : darkMode ? 'text-slate-300 hover:bg-slate-800' : 'text-slate-600 hover:bg-slate-100'}`}>
+                                        {isAdminLoggedIn ? <Settings size={14}/> : <ShieldAlert size={14}/>} {isAdminLoggedIn ? 'Admin' : t.nav_admin}
+                                    </button>
+                                </div>
+
+                                {/* RIGHT ICONS */}
+                                <div className="flex items-center gap-3">
+                                    <button onClick={toggleLang} className={`p-2 rounded-lg border font-bold text-xs hidden sm:block ${darkMode ? 'border-slate-700 text-slate-300' : 'border-slate-200 text-slate-600'}`}>{lang === 'bn' ? 'EN' : 'BN'}</button>
+                                    <button onClick={toggleTheme} className={`p-2 rounded-lg transition ${darkMode ? 'bg-slate-800 text-yellow-400' : 'bg-slate-100 text-slate-600'}`}>{darkMode ? <Sun size={18}/> : <Moon size={18}/>}</button>
+                                    <button className="md:hidden p-2" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>{mobileMenuOpen ? <X size={24}/> : <Menu size={24}/>}</button>
+                                </div>
                             </div>
                         </div>
-                    `;
-                    // Insert before nav buttons
-                    sliderContainer.insertBefore(document.createRange().createContextualFragment(slideHTML), sliderContainer.querySelector('.slider-nav'));
-                });
-            }
-            initializeSlider();
-        }
-        
-        function initializeSlider() {
-            let currentSlide = 0;
-            const slides = document.querySelectorAll('#slider .slide');
-            const totalSlides = slides.length;
 
-            if (window.sliderInterval) clearInterval(window.sliderInterval);
-            
-            if (totalSlides <= 1) return;
+                        {/* MOBILE MENU */}
+                        {mobileMenuOpen && (
+                            <div className={`md:hidden p-4 border-t space-y-2 animate-fade-in ${darkMode ? 'bg-slate-900 border-slate-700' : 'bg-white border-slate-200'}`}>
+                                <button onClick={() => { setView('home'); setMobileMenuOpen(false); }} className="w-full text-left px-4 py-3 rounded-xl font-bold bg-indigo-50 text-indigo-600">{t.nav_home}</button>
+                                <button onClick={() => { setView('dashboard'); setMobileMenuOpen(false); }} className="w-full text-left px-4 py-3 rounded-xl font-bold bg-slate-50">{t.nav_track}</button>
+                                <button onClick={() => { setView(isAdminLoggedIn ? 'admin' : 'login'); setMobileMenuOpen(false); }} className="w-full text-left px-4 py-3 rounded-xl font-bold bg-slate-50">{t.nav_admin}</button>
+                            </div>
+                        )}
+                    </nav>
 
-            const showSlide = i => slides.forEach((s, idx) => s.classList.toggle('active', i === idx));
-            const next = () => { currentSlide = (currentSlide + 1) % totalSlides; showSlide(currentSlide); };
-            
-            window.sliderInterval = setInterval(next, 5000);
-        }
-
-        function renderReviews(reviews) {
-            const container = document.getElementById('reviews-list');
-            container.innerHTML = '';
-            if(reviews.length === 0) {
-                container.innerHTML = `<p data-lang-key="reviews_none"></p>`;
-                setLanguage(localStorage.getItem('language') || 'bn');
-                return;
-            }
-            reviews.sort((a,b) => b.createdAt.toMillis() - a.createdAt.toMillis()).forEach(review => {
-                const date = review.createdAt ? review.createdAt.toDate().toLocaleDateString('bn-BD') : '';
-                let starsHTML = '';
-                for(let i=1; i<=5; i++) {
-                    starsHTML += `<svg class="w-4 h-4 ${i <= review.rating ? 'text-yellow-400' : 'text-gray-500'}" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>`;
-                }
-                const reviewEl = document.createElement('div');
-                reviewEl.className = 'border-b border-gray-800 pb-3';
-                reviewEl.innerHTML = `
-                    <div class="flex items-center mb-1">
-                        <p class="font-semibold mr-2">${review.userName || 'Anonymous'}</p>
-                        <div class="flex">${starsHTML}</div>
-                    </div>
-                    <p class="text-sm text-gray-400">${review.comment}</p>
-                    <p class="text-xs text-gray-500 text-right">${date}</p>
-                `;
-                container.appendChild(reviewEl);
-            });
-        }
-
-        function renderReviewForm() {
-            const container = document.getElementById('review-form-container');
-            if (state.user && !state.user.isAnonymous) {
-                 container.innerHTML = `
-                    <h5 class="text-lg font-semibold mb-3" data-lang-key="review_form_title"></h5>
-                    <form id="review-form">
-                        <div class="star-rating flex items-center mb-2" data-rating="0">
-                            ${[1,2,3,4,5].map(i => `<span class="star" data-action="setRating" data-value="${i}"><svg class="w-6 h-6 pointer-events-none" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg></span>`).join('')}
+                    {/* --- NOTICE TICKER --- */}
+                    <div className={`${darkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'} border-b py-2 overflow-hidden relative`}>
+                        <div className="whitespace-nowrap animate-marquee flex items-center gap-8 text-sm font-medium text-indigo-500">
+                            <span className="flex items-center gap-2"><Bell size={14}/> {notice}</span>
+                            <span className="text-slate-400">|</span>
+                            {services.map(s => <span key={s.id} className={`${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>{s.name}: <span className={s.reserve > 1000 ? "text-green-500" : "text-red-500"}>{s.reserve} {s.unit_name}</span></span>)}
                         </div>
-                        <textarea id="review-comment" class="w-full bg-gray-800 p-3 rounded-md" rows="3" data-lang-key="review_form_placeholder" required></textarea>
-                        <button type="submit" class="mt-2 bg-yellow-500 hover:bg-yellow-600 font-bold py-2 px-4 rounded-lg text-sm" data-lang-key="review_form_submit"></button>
-                    </form>`;
-            } else {
-                container.innerHTML = '';
-            }
-            setLanguage(localStorage.getItem('language') || 'bn');
-        }
+                    </div>
 
-        // --- Firebase & Data Logic ---
-        function listenForProductUpdates() {
-            const productsCol = collection(db, `artifacts/${appId}/public/data/products`);
-            state.unsubscribers.products();
-            state.unsubscribers.products = onSnapshot(productsCol, (snapshot) => {
-                state.products = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                const newCategories = ['All', ...new Set(state.products.map(p => p.category))];
-                const categoryContainer = document.getElementById('category-filters');
-                categoryContainer.innerHTML = newCategories.map(c => `<button class="category-btn px-4 py-2 rounded-full text-sm font-semibold transition ${c === state.currentCategory ? 'active' : ''}" data-action="setCategory" data-category="${c}">${c}</button>`).join('');
-                renderProducts();
-                if (!document.getElementById('dashboard').classList.contains('hidden')) {
-                    renderFavoritesInDashboard();
-                }
-            }, (error) => {
-                console.error("Error listening to product updates:", error);
-                showNotification("প্রোডাক্টের তালিকা আপডেট করা সম্ভব হয়নি।", "error");
-            });
-        }
-        
-        function listenForBannerUpdates() {
-            const bannersCol = collection(db, `artifacts/${appId}/public/data/banners`);
-            state.unsubscribers.banners();
-            state.unsubscribers.banners = onSnapshot(bannersCol, (snapshot) => {
-                state.banners = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                renderBanners();
-            }, (error) => {
-                console.error("Error fetching banners:", error);
-                renderBanners(); // Render with default banner on error
-            });
-        }
-        
-        function listenForSiteSettings() {
-            const settingsRef = doc(db, `artifacts/${appId}/public/data/site_settings/details`);
-            state.unsubscribers.siteSettings();
-            state.unsubscribers.siteSettings = onSnapshot(settingsRef, (docSnap) => {
-                if (docSnap.exists()) {
-                    state.siteSettings = docSnap.data();
-                    document.getElementById('gateway-number').innerText = state.siteSettings.gatewayNumber || 'N/A';
-                    document.getElementById('gateway-name').innerText = state.siteSettings.gatewayName || 'N/A';
-                    document.getElementById('site-gateway-name').value = state.siteSettings.gatewayName || '';
-                    document.getElementById('site-gateway-number').value = state.siteSettings.gatewayNumber || '';
-                } else {
-                    state.siteSettings = null;
-                    document.getElementById('gateway-number').innerText = '01XXXXXXXXX';
-                    document.getElementById('gateway-name').innerText = 'Not Set';
-                }
-            }, (error) => {
-                console.error("Error fetching site settings:", error);
-            });
-        }
-        
-        function listenForAllOrders() {
-            state.unsubscribers.allOrders();
-            const allOrdersCol = collection(db, `artifacts/${appId}/public/data/orders`);
-            state.unsubscribers.allOrders = onSnapshot(allOrdersCol, (snapshot) => {
-                state.allOrders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                renderAllOrders(state.allOrders);
-            }, (err) => {
-                console.error("Error fetching all orders:", err);
-            });
-        }
-        
-        function listenForReviews(productId) {
-            state.unsubscribers.reviews();
-            const reviewsCol = collection(db, `artifacts/${appId}/public/data/products/${productId}/reviews`);
-            state.unsubscribers.reviews = onSnapshot(reviewsCol, (snapshot) => {
-                const reviews = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
-                renderReviews(reviews);
-            });
-        }
-        
-        async function fetchUserProfile() {
-            if (!state.user || state.user.isAnonymous) {
-                state.userProfile = null; return;
-            }
-            const docRef = doc(db, `artifacts/${appId}/users/${state.user.uid}/profile/details`);
-            const docSnap = await getDoc(docRef);
-            if (docSnap.exists()) {
-                state.userProfile = docSnap.data();
-                document.getElementById('profile-full-name').innerText = state.userProfile.fullName || '';
-                document.getElementById('profile-email').innerText = state.userProfile.email || '';
-                document.getElementById('profile-mobile').innerText = state.userProfile.mobile || '';
-                document.getElementById('settings-address').value = state.userProfile.address || '';
-                document.getElementById('settings-house').value = state.userProfile.houseNumber || '';
-                document.getElementById('settings-zip').value = state.userProfile.zipCode || '';
-                document.getElementById('payout-method').value = state.userProfile.payoutMethod || 'bKash';
-                document.getElementById('payout-number').value = state.userProfile.payoutNumber || '';
-            } else {
-                state.userProfile = null;
-            }
-        }
-
-        async function addToCart(productId) {
-            try {
-                const cartCol = collection(db, `artifacts/${appId}/users/${state.user.uid}/cart`);
-                await addDoc(cartCol, { productId, quantity: 1, addedAt: serverTimestamp() });
-                showNotification('পণ্যটি কার্টে যোগ করা হয়েছে।');
-            } catch (e) { showNotification('কার্টে যোগ করতে সমস্যা হয়েছে।', 'error'); }
-        }
-
-        async function removeFromCart(cartId) {
-             if (!cartId) return;
-             try {
-                const docRef = doc(db, `artifacts/${appId}/users/${state.user.uid}/cart`, cartId);
-                await deleteDoc(docRef);
-                state.selectedCartItemIds.delete(cartId);
-                showNotification('কার্ট থেকে পণ্য মুছে ফেলা হয়েছে।');
-             } catch (err) {
-                 showNotification('পণ্যটি মুছতে সমস্যা হয়েছে।', 'error');
-             }
-        }
-
-        async function toggleFavorite(productId) {
-            try {
-                const favCol = collection(db, `artifacts/${appId}/users/${state.user.uid}/favorites`);
-                const q = query(favCol, where("productId", "==", productId));
-                const snapshot = await getDocs(q);
-                if (snapshot.empty) {
-                    await addDoc(favCol, { productId, addedAt: serverTimestamp() });
-                    showNotification('পণ্যটি ফেভারিটে যোগ করা হয়েছে।');
-                } else {
-                    await deleteDoc(snapshot.docs[0].ref);
-                    showNotification('পণ্যটি ফেভারিট থেকে মুছে ফেলা হয়েছে।');
-                }
-            } catch (e) { console.error(e); showNotification('ফেভারিট পরিবর্তন করতে সমস্যা হয়েছে।', 'error'); }
-        }
-        
-        function buyNow(productId) {
-            const product = state.products.find(p => p.id === productId);
-            if (product) {
-                const itemsToCheckout = [{ productId: product.id, quantity: 1 }];
-                startCheckoutProcess(itemsToCheckout);
-            } else {
-                showNotification('প্রোডাক্ট খুঁজে পাওয়া যায়নি।', 'error');
-            }
-        }
-        
-        function startCheckoutProcess(items) {
-            if (!items || items.length === 0) return;
-            if (!state.siteSettings || !state.siteSettings.gatewayNumber) {
-                showNotification('সাইটের পেমেন্ট পদ্ধতি এখনো সেট করা হয়নি।', 'error');
-                return;
-            }
-
-            const totalAmount = items.reduce((acc, item) => {
-                const product = state.products.find(p => p.id === item.productId);
-                return acc + (product ? product.price * item.quantity : 0);
-            }, 0);
-
-            if (totalAmount <= 0) return;
-            
-            state.checkoutItems = items;
-            document.getElementById('cart-modal').classList.remove('active');
-            document.getElementById('product-details-modal').classList.remove('active');
-            
-            document.getElementById('payment-amount').innerText = `৳${totalAmount.toLocaleString('bn-BD')}`;
-            document.getElementById('payment-modal').classList.add('active');
-        }
-
-        async function updateOrderStatus(orderId, status) {
-            try {
-                const orderRef = doc(db, `artifacts/${appId}/public/data/orders`, orderId);
-                await updateDoc(orderRef, { status });
-                showNotification('অর্ডারের স্ট্যাটাস আপডেট হয়েছে।');
-            } catch(err) {
-                showNotification('স্ট্যাটাস আপডেট করা যায়নি।', 'error');
-            }
-        }
-        
-        function showDashboardPage(targetPageId) {
-            document.getElementById('main-content').classList.add('hidden');
-            const dashboard = document.getElementById('dashboard');
-            dashboard.classList.remove('hidden');
-            
-            handleAction('switchDashboardTab', { target: targetPageId });
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        async function openProductDetailsModal(productId) {
-            const product = state.products.find(p => p.id === productId);
-            if (!product) return;
-            state.currentOpenProduct = product;
-
-            document.getElementById('details-img').src = product.image;
-            document.getElementById('details-name').innerText = product.name;
-            document.getElementById('details-price').innerText = `৳${product.price.toLocaleString('bn-BD')}`;
-            document.getElementById('details-category').innerText = product.category;
-            document.getElementById('details-desc').innerText = product.description || 'No description available.';
-
-            listenForReviews(productId);
-            renderReviewForm();
-
-            document.getElementById('product-details-modal').classList.add('active');
-            
-            try {
-                const productRef = doc(db, `artifacts/${appId}/public/data/products`, productId);
-                await updateDoc(productRef, { views: increment(1) });
-            } catch (err) {
-                console.error("Error incrementing product view:", err);
-            }
-        }
-
-        async function handleReviewSubmit(e) {
-            e.preventDefault();
-            const rating = e.target.querySelector('.star-rating').dataset.rating;
-            const comment = e.target.querySelector('#review-comment').value;
-
-            if (rating === '0' || !comment) {
-                showNotification('অনুগ্রহ করে রেটিং এবং মন্তব্য দিন।', 'error'); return;
-            }
-
-            try {
-                const reviewData = {
-                    userId: state.user.uid,
-                    userName: state.userProfile?.fullName || state.user.email,
-                    rating: parseInt(rating),
-                    comment,
-                    createdAt: serverTimestamp()
-                };
-                const reviewsCol = collection(db, `artifacts/${appId}/public/data/products/${state.currentOpenProduct.id}/reviews`);
-                await addDoc(reviewsCol, reviewData);
-                showNotification('আপনার রিভিউ সফলভাবে জমা হয়েছে।');
-                e.target.reset();
-                document.querySelector('#review-form .star-rating').dataset.rating = 0;
-                document.querySelectorAll('#review-form .star').forEach(s => s.classList.remove('selected'));
-            } catch (err) {
-                showNotification('রিভিউ জমা দিতে সমস্যা হয়েছে।', 'error');
-            }
-        }
-        
-        // --- Event Handlers & Action Router ---
-        function handleAction(action, data = {}) {
-            const { productId, modalId, lang, category, target, cartItemId, cartId, value, orderId } = data;
-
-            if (!state.user || state.user.isAnonymous) {
-                const protectedActions = ['addToCart', 'buyNow', 'toggleFavorite', 'showDashboard', 'showSellProduct', 'showFavorites'];
-                if (protectedActions.includes(action)) {
-                     showNotification('এই ফিচারটি ব্যবহার করতে লগইন করুন।', 'error');
-                     document.getElementById('auth-modal').classList.add('active');
-                     return;
-                }
-            }
-            
-            switch (action) {
-                // UI Actions
-                case 'toggleTheme':
-                    applyTheme(localStorage.getItem('theme') === 'dark' ? 'light' : 'dark');
-                    break;
-                case 'setLang':
-                    setLanguage(lang);
-                    break;
-                case 'openModal':
-                    document.getElementById(modalId).classList.add('active');
-                    break;
-                case 'closeModal':
-                    document.getElementById(modalId).classList.remove('active');
-                    if (modalId === 'product-details-modal') {
-                        state.unsubscribers.reviews();
-                        state.currentOpenProduct = null;
-                    }
-                    if (modalId === 'payment-modal') state.checkoutItems = [];
-                    break;
-                case 'showLoginView':
-                    document.getElementById('login-view').classList.remove('hidden');
-                    document.getElementById('register-view').classList.add('hidden');
-                    break;
-                case 'showRegisterView':
-                    document.getElementById('login-view').classList.add('hidden');
-                    document.getElementById('register-view').classList.remove('hidden');
-                    break;
-                case 'authAction':
-                    if (state.user && !state.user.isAnonymous) signOut(auth);
-                    else document.getElementById('auth-modal').classList.add('active');
-                    break;
-
-                // Navigation
-                case 'showHome':
-                     document.getElementById('main-content').classList.remove('hidden');
-                     document.getElementById('dashboard').classList.add('hidden');
-                    break;
-                case 'showDashboard': showDashboardPage('my-orders'); break;
-                case 'showSellProduct': showDashboardPage('upload-product'); break;
-                case 'showFavorites': showDashboardPage('my-favorites'); break;
-                case 'switchDashboardTab':
-                    document.querySelectorAll('.dashboard-nav-item').forEach(el => el.classList.remove('active'));
-                    document.querySelector(`[data-target="${target}"]`).classList.add('active');
-                    document.querySelectorAll('.dashboard-content').forEach(el => el.classList.add('hidden'));
-                    document.getElementById(target).classList.remove('hidden');
-                    break;
-
-                // Product & Cart Actions
-                case 'setCategory':
-                    state.currentCategory = category;
-                    renderProducts();
-                    break;
-                case 'openDetails': openProductDetailsModal(productId); break;
-                case 'addToCart': addToCart(productId || state.currentOpenProduct.id); break;
-                case 'buyNow': buyNow(productId || state.currentOpenProduct.id); break;
-                case 'toggleFavorite': toggleFavorite(productId); break;
-                case 'removeFromCart': removeFromCart(cartId); break;
-                case 'toggleCartItemSelection':
-                    const checkbox = document.querySelector(`[data-cart-item-id="${cartItemId}"]`);
-                    if (checkbox.checked) state.selectedCartItemIds.add(cartItemId);
-                    else state.selectedCartItemIds.delete(cartItemId);
-                    renderCart();
-                    break;
-                case 'setRating':
-                    const ratingContainer = document.querySelector('#review-form .star-rating');
-                    ratingContainer.dataset.rating = value;
-                    ratingContainer.querySelectorAll('.star').forEach(s => {
-                        s.classList.toggle('selected', s.dataset.value <= value);
-                    });
-                    break;
-                 case 'updateOrderStatus':
-                    const selectEl = document.querySelector(`[data-order-id="${orderId}"]`);
-                    updateOrderStatus(orderId, selectEl.value);
-                    break;
-                case 'prevSlide':
-                case 'nextSlide':
-                    const slides = document.querySelectorAll('#slider .slide');
-                    if (slides.length <=1) return;
-                    let current = [...slides].findIndex(s => s.classList.contains('active'));
-                    slides[current].classList.remove('active');
-                    if (action === 'nextSlide') {
-                        current = (current + 1) % slides.length;
-                    } else {
-                        current = (current - 1 + slides.length) % slides.length;
-                    }
-                    slides[current].classList.add('active');
-                    // Reset interval
-                    initializeSlider();
-                    break;
-            }
-        }
-        
-        function init() {
-            try {
-                // Initialize Firebase
-                app = initializeApp(firebaseConfig);
-                auth = getAuth(app);
-                db = getFirestore(app);
-
-                // Setup Initial UI
-                applyTheme(localStorage.getItem('theme') || 'dark');
-                setLanguage(localStorage.getItem('language') || 'bn');
-                
-                // Central Event Listener for Clicks
-                document.body.addEventListener('click', e => {
-                    const actionTarget = e.target.closest('[data-action]');
-                    if (actionTarget) {
-                        e.preventDefault();
-                        const productCard = actionTarget.closest('[data-product-id]');
-                        const combinedData = {
-                            ...actionTarget.dataset,
-                            ...(productCard ? { productId: productCard.dataset.productId } : {})
-                        };
-                        handleAction(actionTarget.dataset.action, combinedData);
-                    }
-                });
-                
-                // Form submissions and other specific listeners
-                document.getElementById('search-bar').addEventListener('input', e => {
-                    state.searchTerm = e.target.value.toLowerCase();
-                    renderProducts();
-                });
-
-                document.getElementById('login-form').addEventListener('submit', async e => {
-                    e.preventDefault();
-                    try {
-                        await signInWithEmailAndPassword(auth, e.target['login-email'].value, e.target['login-password'].value);
-                        document.getElementById('auth-modal').classList.remove('active');
-                        showNotification('সফলভাবে লগইন করেছেন।');
-                    } catch (err) { showNotification('ইমেইল বা পাসওয়ার্ড ভুল।', 'error'); }
-                });
-
-                document.getElementById('register-form').addEventListener('submit', async e => {
-                    e.preventDefault();
-                    const name = e.target['register-name'].value;
-                    const mobile = e.target['register-mobile'].value;
-                    const email = e.target['register-email'].value;
-                    const password = e.target['register-password'].value;
-                    if (password !== e.target['register-confirm-password'].value) {
-                        showNotification('পাসওয়ার্ড মেলেনি।', 'error'); return;
-                    }
-                    if (!e.target['register-terms'].checked) {
-                        showNotification('শর্তাবলীতে সম্মত হতে হবে।', 'error'); return;
-                    }
-                    try {
-                        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                        const user = userCredential.user;
-                        const profileRef = doc(db, `artifacts/${appId}/users/${user.uid}/profile/details`);
-                        await setDoc(profileRef, {
-                            fullName: name, mobile: mobile, email: email, createdAt: serverTimestamp()
-                        });
-                        document.getElementById('auth-modal').classList.remove('active');
-                        showNotification('অ্যাকাউন্ট সফলভাবে তৈরি হয়েছে।');
-                    } catch (err) { 
-                        if (err.code === 'auth/email-already-in-use') showNotification('এই ইমেইলটি ஏற்கனவே ব্যবহৃত হয়েছে।', 'error');
-                        else if (err.code === 'auth/weak-password') showNotification('পাসওয়ার্ডটি দুর্বল। কমপক্ষে ৬টি অক্ষর ব্যবহার করুন।', 'error');
-                        else showNotification('রেজিস্ট্রেশন ব্যর্থ হয়েছে।', 'error');
-                    }
-                });
-                
-                document.getElementById('upload-form').addEventListener('submit', async e => {
-                    e.preventDefault();
-                    if(!state.user || state.user.isAnonymous) return;
-                    try {
-                        await addDoc(collection(db, `artifacts/${appId}/public/data/products`), {
-                            name: document.getElementById('upload-name').value,
-                            description: document.getElementById('upload-desc').value,
-                            price: parseFloat(document.getElementById('upload-price').value),
-                            category: document.getElementById('upload-category').value,
-                            image: document.getElementById('upload-image').value,
-                            sellerId: state.user.uid,
-                            views: 0,
-                            createdAt: serverTimestamp()
-                        });
-                        showNotification('আপনার পণ্য সফলভাবে আপলোড হয়েছে।');
-                        e.target.reset();
-                        showDashboardPage('my-orders');
-                    } catch (err) { showNotification('পণ্য আপলোড করতে সমস্যা হয়েছে।', 'error'); }
-                });
-
-                document.getElementById('settings-form').addEventListener('submit', async e => {
-                    e.preventDefault();
-                    if(!state.user || state.user.isAnonymous) return;
-                    try {
-                        const docRef = doc(db, `artifacts/${appId}/users/${state.user.uid}/profile/details`);
-                        await setDoc(docRef, {
-                            address: document.getElementById('settings-address').value,
-                            houseNumber: document.getElementById('settings-house').value,
-                            zipCode: document.getElementById('settings-zip').value,
-                            payoutMethod: document.getElementById('payout-method').value,
-                            payoutNumber: document.getElementById('payout-number').value,
-                        }, { merge: true }); 
-                        showNotification('আপনার তথ্য সেভ করা হয়েছে।');
-                    } catch (err) { showNotification('তথ্য সেভ করা যায়নি।', 'error');}
-                });
-
-                document.getElementById('site-settings-form').addEventListener('submit', async e => {
-                    e.preventDefault();
-                    if(!state.user || state.user.isAnonymous) return;
-                    try {
-                        const docRef = doc(db, `artifacts/${appId}/public/data/site_settings/details`);
-                        await setDoc(docRef, {
-                            gatewayName: document.getElementById('site-gateway-name').value,
-                            gatewayNumber: document.getElementById('site-gateway-number').value,
-                        }, { merge: true });
-                        showNotification('সাইট সেটিংস সেভ করা হয়েছে।');
-                    } catch (err) { showNotification('সেটিংস সেভ করা যায়নি।', 'error'); }
-                });
-
-                document.getElementById('payment-form').addEventListener('submit', async e => {
-                    e.preventDefault();
-                    if (!state.checkoutItems || state.checkoutItems.length === 0) return;
-
-                    const totalAmount = state.checkoutItems.reduce((acc, item) => {
-                        const product = state.products.find(p => p.id === item.productId);
-                        return acc + (product ? product.price * item.quantity : 0);
-                    }, 0);
-
-                    const orderDetails = {
-                        items: state.checkoutItems.map(item => ({productId: item.productId, quantity: item.quantity})),
-                        totalAmount: totalAmount,
-                        paymentPhone: document.getElementById('payment-phone').value,
-                        paymentTrxId: document.getElementById('payment-trxid').value,
-                        status: 'pending',
-                        createdAt: serverTimestamp(),
-                        userId: state.user.uid
-                    };
-                    try {
-                        await addDoc(collection(db, `artifacts/${appId}/public/data/orders`), orderDetails);
+                    {/* --- MAIN CONTENT AREA --- */}
+                    <main className="max-w-7xl mx-auto px-4 py-8">
                         
-                        const purchasedCartItemIds = new Set(state.checkoutItems.filter(item => item.id).map(item => item.id));
-                        if (purchasedCartItemIds.size > 0) {
-                            const batch = writeBatch(db);
-                            purchasedCartItemIds.forEach(cartId => {
-                                const docRef = doc(db, `artifacts/${appId}/users/${state.user.uid}/cart`, cartId);
-                                batch.delete(docRef);
-                            });
-                            await batch.commit();
-                        }
+                        {/* 1. HOME VIEW (Exchange) */}
+                        {view === 'home' && (
+                            <div className="grid lg:grid-cols-12 gap-8 items-start animate-fade-in-up">
+                                {/* Left: Form */}
+                                <div className="lg:col-span-7">
+                                    <div className={`rounded-3xl shadow-2xl overflow-hidden border relative ${darkMode ? 'bg-slate-800 border-slate-700 shadow-black/50' : 'bg-white border-slate-100 shadow-indigo-100'}`}>
+                                        <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-8 text-white relative overflow-hidden">
+                                            <div className="absolute top-0 right-0 p-4 opacity-10"><ArrowRightLeft size={150} /></div>
+                                            <h2 className="text-3xl font-black mb-2">{t.hero_title}</h2>
+                                            <div className="flex items-center gap-2 text-indigo-100 font-medium text-sm">
+                                                <span className={`px-2 py-0.5 rounded-full bg-white/20 ${exchangeStep === 1 ? 'bg-white/40 font-bold' : ''}`}>1. {t.step1}</span><ArrowRight size={14}/><span className={`px-2 py-0.5 rounded-full bg-white/20 ${exchangeStep === 2 ? 'bg-white/40 font-bold' : ''}`}>2. {t.step2}</span><ArrowRight size={14}/><span className="px-2 py-0.5 rounded-full bg-white/20">3. {t.step3}</span>
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="p-8">
+                                            {/* Step 1: Calculator */}
+                                            {exchangeStep === 1 && (
+                                                <div className="space-y-6 animate-fade-in">
+                                                    {/* SEND */}
+                                                    <div className={`p-4 rounded-2xl border transition focus-within:ring-2 ring-indigo-500/30 ${darkMode ? 'bg-slate-900 border-slate-700' : 'bg-slate-50 border-slate-100'}`}>
+                                                        <div className="flex justify-between text-xs font-bold uppercase mb-2 opacity-60"><span>{t.send}</span><span>{t.reserve}: {sendService.reserve}</span></div>
+                                                        <div className="flex gap-4">
+                                                            <div className="w-1/3 min-w-[120px]">
+                                                                <select className={`w-full p-3 rounded-xl font-bold outline-none cursor-pointer ${darkMode ? 'bg-slate-800 text-white border-slate-600' : 'bg-white text-slate-800 border-slate-200'} border`} value={sendId} onChange={(e) => { setSendId(e.target.value); setSendAmount(''); setReceiveAmount(''); }}>{services.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}</select>
+                                                            </div>
+                                                            <input type="number" placeholder="Amount" className={`w-full p-3 rounded-xl font-mono text-xl font-bold outline-none bg-transparent placeholder-opacity-30 ${darkMode ? 'placeholder-slate-500 text-white' : 'placeholder-slate-400 text-slate-900'}`} value={sendAmount} onChange={(e) => handleSendAmountChange(e.target.value)}/>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    {/* Swap Icon */}
+                                                    <div className="flex justify-center -my-8 relative z-10"><button className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white p-3 rounded-full shadow-lg hover:scale-110 transition border-4 border-white dark:border-slate-800"><ArrowRightLeft size={24} /></button></div>
+                                                    
+                                                    {/* RECEIVE */}
+                                                    <div className={`p-4 rounded-2xl border transition focus-within:ring-2 ring-indigo-500/30 ${darkMode ? 'bg-slate-900 border-slate-700' : 'bg-slate-50 border-slate-100'}`}>
+                                                        <div className="flex justify-between text-xs font-bold uppercase mb-2 opacity-60"><span>{t.receive}</span><span>{t.reserve}: {receiveService.reserve}</span></div>
+                                                        <div className="flex gap-4">
+                                                            <div className="w-1/3 min-w-[120px]">
+                                                                <select className={`w-full p-3 rounded-xl font-bold outline-none cursor-pointer ${darkMode ? 'bg-slate-800 text-white border-slate-600' : 'bg-white text-slate-800 border-slate-200'} border`} value={receiveId} onChange={(e) => { setReceiveId(e.target.value); setSendAmount(''); setReceiveAmount(''); }}>{services.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}</select>
+                                                            </div>
+                                                            <input type="number" placeholder="Amount" className={`w-full p-3 rounded-xl font-mono text-xl font-bold outline-none bg-transparent placeholder-opacity-30 ${darkMode ? 'placeholder-slate-500 text-white' : 'placeholder-slate-400 text-slate-900'}`} value={receiveAmount} onChange={(e) => handleReceiveAmountChange(e.target.value)}/>
+                                                        </div>
+                                                    </div>
 
-                        state.checkoutItems = [];
-                        state.selectedCartItemIds.clear();
-                        document.getElementById('payment-modal').classList.remove('active');
-                        showNotification('আপনার অর্ডারটি গ্রহণ করা হয়েছে।');
-                        e.target.reset();
-                        showDashboardPage('my-orders');
-                    } catch (err) {
-                        showNotification('অর্ডার কনফার্ম করা যায়নি।', 'error');
-                    }
-                });
+                                                    {/* User Input */}
+                                                    <div className={`p-5 rounded-2xl border ${darkMode ? 'bg-indigo-900/20 border-indigo-800' : 'bg-indigo-50 border-indigo-100'}`}>
+                                                        <label className="flex items-center gap-2 text-sm font-bold text-indigo-500 mb-2"><User size={16}/> {receiveService.user_input_label} <span className="text-red-500">*</span></label>
+                                                        <input type="text" placeholder="Where we will send money/product..." className={`w-full p-3 rounded-xl outline-none focus:ring-2 ring-indigo-500/50 ${darkMode ? 'bg-slate-900 border-slate-700 text-white' : 'bg-white border-indigo-200 text-slate-900'} border`} value={userInput} onChange={(e) => setUserInput(e.target.value)}/>
+                                                    </div>
 
-                document.body.addEventListener('submit', e => {
-                     if (e.target.id === 'review-form') {
-                        e.preventDefault();
-                        handleReviewSubmit(e);
-                     }
-                });
+                                                    <button onClick={handleNextStep} className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold py-4 rounded-xl shadow-xl shadow-indigo-500/20 transform transition active:scale-95 flex items-center justify-center gap-2 text-lg">{t.exchange_btn} <ArrowRight size={20}/></button>
+                                                </div>
+                                            )}
 
-                document.getElementById('checkout-btn').addEventListener('click', () => {
-                     if (state.selectedCartItemIds.size > 0) {
-                         const itemsToCheckout = state.cart.filter(item => state.selectedCartItemIds.has(item.id));
-                         startCheckoutProcess(itemsToCheckout);
-                     } else {
-                         showNotification('অনুগ্রহ করে কেনার জন্য পণ্য নির্বাচন করুন।', 'error');
-                     }
-                 });
+                                            {/* Step 2: Payment */}
+                                            {exchangeStep === 2 && (
+                                                <div className="space-y-6 animate-fade-in">
+                                                    {/* Payment Instruction */}
+                                                    {sendService.type === 'currency' ? (
+                                                        <div className={`p-5 rounded-2xl border border-dashed ${darkMode ? 'bg-yellow-900/10 border-yellow-700 text-yellow-500' : 'bg-yellow-50 border-yellow-300 text-yellow-800'}`}>
+                                                            <h4 className="font-bold flex items-center gap-2 mb-2"><Wallet size={18}/> {t.pay_instruction}</h4>
+                                                            <div className={`p-3 rounded-lg font-mono text-lg font-bold flex justify-between items-center ${darkMode ? 'bg-slate-800' : 'bg-white border'}`}><span>{sendService.payment_details}</span>{sendService.payment_details !== 'Contact Admin' && <button onClick={() => copyToClipboard(sendService.payment_details)}><Copy size={16}/></button>}{sendService.payment_details === 'Contact Admin' && <button onClick={openWhatsApp} className="text-xs bg-green-500 text-white px-2 py-1 rounded">WhatsApp</button>}</div>
+                                                            <p className="text-xs mt-2 opacity-80">Send exactly <b>{sendAmount} {sendService.unit_name}</b> to the above address.</p>
+                                                        </div>
+                                                    ) : (
+                                                        <div className={`p-5 rounded-2xl border border-dashed ${darkMode ? 'bg-blue-900/10 border-blue-700 text-blue-500' : 'bg-blue-50 border-blue-300 text-blue-800'}`}>
+                                                            <h4 className="font-bold flex items-center gap-2 mb-2"><FileText size={18}/> {t.product_instruction}</h4>
+                                                            <p className="text-sm opacity-80 mb-1">Since you are selling <b>{sendService.name}</b>, please provide the access details below.</p>
+                                                        </div>
+                                                    )}
 
-                // Authenticate user
-                onAuthStateChanged(auth, async (user) => {
-                    // Clear all previous user-specific listeners to prevent memory leaks
-                    Object.values(state.unsubscribers).forEach(unsub => unsub());
-                    state.unsubscribers = { reviews: () => {}, products: () => {}, banners: () => {}, cart: () => {}, favorites: () => {}, orders: () => {}, siteSettings: () => {}, allOrders: () => {} };
-                    
-                    state.user = user;
-                    updateUIForAuthState(user);
-                    
-                    // Re-initialize global listeners that don't depend on the user
-                    listenForProductUpdates();
-                    listenForBannerUpdates();
-                    listenForSiteSettings();
+                                                    {/* TrxID Input */}
+                                                    <div className={`p-5 rounded-2xl border ${darkMode ? 'bg-slate-900 border-slate-700' : 'bg-slate-50 border-slate-100'}`}>
+                                                        <label className="flex items-center gap-2 text-sm font-bold text-slate-500 mb-2">{sendService.type === 'currency' ? <CheckCircle size={16}/> : <FileText size={16}/>} {sendService.type === 'currency' ? t.trx_label : t.product_label} <span className="text-red-500">*</span></label>
+                                                        {sendService.type === 'currency' ? (
+                                                            <input type="text" placeholder="e.g. 8HG7..." className={`w-full p-3 rounded-xl outline-none focus:ring-2 ring-indigo-500/50 ${darkMode ? 'bg-slate-800 border-slate-600 text-white' : 'bg-white border-slate-200 text-slate-900'} border`} value={trxInput} onChange={(e) => setTrxInput(e.target.value)}/>
+                                                        ) : (
+                                                            <textarea rows="3" placeholder="e.g. email:password or download link..." className={`w-full p-3 rounded-xl outline-none focus:ring-2 ring-indigo-500/50 ${darkMode ? 'bg-slate-800 border-slate-600 text-white' : 'bg-white border-slate-200 text-slate-900'} border`} value={trxInput} onChange={(e) => setTrxInput(e.target.value)}></textarea>
+                                                        )}
+                                                    </div>
 
-                    if (user && !user.isAnonymous) {
-                        await fetchUserProfile();
-                        
-                        // Set up listeners for user-specific data
-                        state.unsubscribers.cart = onSnapshot(collection(db, `artifacts/${appId}/users/${user.uid}/cart`), s => {
-                            state.cart = s.docs.map(d => ({ id: d.id, ...d.data() }));
-                            document.getElementById('cart-count').textContent = state.cart.length;
-                            renderCart();
-                        });
-                        state.unsubscribers.favorites = onSnapshot(collection(db, `artifacts/${appId}/users/${user.uid}/favorites`), s => {
-                            state.favorites = s.docs.map(d => d.data().productId);
-                            document.getElementById('favorite-count').textContent = state.favorites.length;
-                            renderProducts(); // Re-render to show correct favorite icons
-                        });
-                        // Listen to the public orders collection and filter for this user's orders
-                        state.unsubscribers.orders = onSnapshot(collection(db, `artifacts/${appId}/public/data/orders`), (snapshot) => {
-                             const userOrders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })).filter(order => order.userId === user.uid);
-                             renderOrders(userOrders);
-                        });
-                        
-                        // If user is admin, set up the listener for all orders
-                        if (user.uid === ADMIN_UID) {
-                            listenForAllOrders();
-                        }
-                    } else {
-                        // Reset state for logged-out or anonymous users
-                        state.cart = []; 
-                        state.favorites = []; 
-                        state.userProfile = null;
-                        document.getElementById('cart-count').textContent = 0;
-                        document.getElementById('favorite-count').textContent = 0;
-                        renderProducts();
-                        renderOrders([]); // Clear personal orders view
-                    }
-                });
+                                                    {/* Actions */}
+                                                    <div className="flex gap-4"><button onClick={() => setExchangeStep(1)} className="w-1/3 bg-slate-200 text-slate-700 font-bold py-4 rounded-xl hover:bg-slate-300 transition">Back</button><button onClick={handleSubmitOrder} className="w-2/3 bg-green-600 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-green-700 transition flex items-center justify-center gap-2">{t.confirm_btn} <Check size={20}/></button></div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
 
-                (async () => {
-                    try {
-                        if (initialAuthToken) await signInWithCustomToken(auth, initialAuthToken);
-                        else await signInAnonymously(auth);
-                    } catch (error) { console.error("Anonymous sign-in failed:", error); }
-                })();
+                                {/* Right: Info */}
+                                <div className="lg:col-span-5 space-y-6">
+                                    <div className={`p-6 rounded-3xl border shadow-lg ${darkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-100'}`}>
+                                        <h3 className="font-bold text-lg mb-4 flex items-center gap-2"><Package size={20} className="text-indigo-500"/> {t.rate_title}</h3>
+                                        <div className={`overflow-hidden rounded-xl border ${darkMode ? 'border-slate-700' : 'border-slate-100'}`}>
+                                            <table className="w-full text-sm"><thead className={`${darkMode ? 'bg-slate-900 text-slate-400' : 'bg-slate-50 text-slate-500'}`}><tr><th className="px-4 py-3 text-left">Method</th><th className="px-4 py-3 text-right">Price</th><th className="px-4 py-3 text-right">Stock</th></tr></thead><tbody className="divide-y dark:divide-slate-700">{services.map(s => <tr key={s.id} className={`${darkMode ? 'hover:bg-slate-700/50' : 'hover:bg-slate-50'} transition`}><td className="px-4 py-3 font-medium flex items-center gap-2"><div className={`w-2 h-8 rounded-full ${s.color}`}></div>{s.name}</td><td className="px-4 py-3 text-right font-bold opacity-80">{s.sell_rate} ৳</td><td className="px-4 py-3 text-right"><span className={`px-2 py-0.5 rounded text-xs font-bold ${s.reserve > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{s.reserve}</span></td></tr>)}</tbody></table>
+                                        </div>
+                                    </div>
+                                    <div className={`p-6 rounded-3xl border shadow-sm ${darkMode ? 'bg-slate-800 border-slate-700' : 'bg-indigo-50 border-indigo-100'}`}>
+                                        <h4 className="font-bold mb-2 flex items-center gap-2 text-indigo-600"><Phone size={18}/> Need Help?</h4>
+                                        <p className="text-sm opacity-70 mb-4">For big amounts or any issues, contact Admin.</p>
+                                        <button onClick={openWhatsApp} className="w-full bg-green-500 text-white py-3 rounded-xl font-bold hover:bg-green-600 transition flex items-center justify-center gap-2"><MessageCircle size={20}/> WhatsApp Admin</button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
 
-            } catch(e) {
-                console.error("Initialization failed:", e);
-                showNotification("অ্যাপ্লিকেশন শুরু করা যায়নি।", "error");
-            }
+                        {/* 2. ADMIN PANEL */}
+                        {view === 'admin' && isAdminLoggedIn && (
+                            <div className="animate-fade-in">
+                                <div className="flex flex-col md:flex-row gap-6">
+                                    {/* Sidebar */}
+                                    <div className={`md:w-64 rounded-2xl p-4 h-fit border shadow-sm ${darkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}`}>
+                                        <div className="flex items-center gap-3 mb-8 px-2"><div className="w-10 h-10 rounded-full bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center text-white shadow-lg shadow-orange-500/30"><Settings size={20} /></div><div><h3 className="font-bold text-sm">Admin Pro</h3><p className="text-[10px] opacity-60">Control Center</p></div></div>
+                                        <div className="space-y-1">
+                                            {[{ id: 'dashboard', icon: <LayoutDashboard size={18}/>, label: t.admin_dash }, { id: 'orders', icon: <List size={18}/>, label: t.admin_orders, badge: orders.filter(o => o.status === 'pending').length }, { id: 'methods', icon: <Sliders size={18}/>, label: t.admin_methods }, { id: 'settings', icon: <Settings size={18}/>, label: t.admin_settings }].map(tab => (
+                                                <button key={tab.id} onClick={() => setAdminTab(tab.id)} className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition ${adminTab === tab.id ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/30' : 'opacity-70 hover:opacity-100 hover:bg-slate-100 dark:hover:bg-slate-700'}`}><span className="flex items-center gap-3">{tab.icon} {tab.label}</span>{tab.badge > 0 && <span className="bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full">{tab.badge}</span>}</button>
+                                            ))}
+                                            <button onClick={() => { setIsAdminLoggedIn(false); setView('home'); addToast("Logged Out", "success"); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 mt-10"><LogOut size={18}/> Logout</button>
+                                        </div>
+                                    </div>
+
+                                    {/* Main Content */}
+                                    <div className="flex-1">
+                                        {/* Tab: Dashboard */}
+                                        {adminTab === 'dashboard' && (
+                                            <div className="space-y-6">
+                                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                                    {[{ title: "Total Orders", val: orders.length, color: "bg-blue-500", icon: <Package/> }, { title: "Pending", val: orders.filter(o => o.status === 'pending').length, color: "bg-orange-500", icon: <Clock/> }, { title: "Completed", val: orders.filter(o => o.status === 'completed').length, color: "bg-green-500", icon: <CheckCircle/> }].map((stat, i) => (
+                                                        <div key={i} className={`p-6 rounded-2xl border shadow-sm flex items-center gap-4 ${darkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}`}><div className={`w-12 h-12 rounded-full ${stat.color} flex items-center justify-center text-white shadow-lg`}>{stat.icon}</div><div><p className="text-sm opacity-60 font-medium">{stat.title}</p><h3 className="text-2xl font-black">{stat.val}</h3></div></div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Tab: Orders */}
+                                        {adminTab === 'orders' && (
+                                            <div className={`rounded-2xl border overflow-hidden ${darkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}`}>
+                                                <div className="p-4 border-b dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50"><h3 className="font-bold">Order Management</h3><button onClick={() => setShowManualOrderForm(true)} className="bg-indigo-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-indigo-700">+ Create Order</button></div>
+                                                
+                                                {showManualOrderForm && (
+                                                    <div className={`p-4 border-b animate-fade-in ${darkMode ? 'bg-slate-900 border-slate-700' : 'bg-indigo-50 border-indigo-100'}`}><h4 className="font-bold mb-3 text-sm">Create Manual Order</h4><form onSubmit={handleManualOrder} className="grid grid-cols-2 gap-3"><select name="sendId" className={`p-2 rounded border text-sm ${darkMode ? 'bg-slate-800 border-slate-600' : 'bg-white'}`}>{services.map(s => <option key={s.id} value={s.id}>Admin Sends: {s.name}</option>)}</select><select name="receiveId" className={`p-2 rounded border text-sm ${darkMode ? 'bg-slate-800 border-slate-600' : 'bg-white'}`}>{services.map(s => <option key={s.id} value={s.id}>User Paid: {s.name}</option>)}</select><input name="amount" placeholder="Amount Admin Sends" type="number" className={`p-2 rounded border text-sm ${darkMode ? 'bg-slate-800 border-slate-600' : 'bg-white'}`} required/><input name="userData" placeholder="Contact" className={`p-2 rounded border text-sm ${darkMode ? 'bg-slate-800 border-slate-600' : 'bg-white'}`} required/><div className="col-span-2 flex gap-2"><button type="submit" className="bg-green-600 text-white px-4 py-2 rounded text-sm font-bold w-full">Confirm</button><button type="button" onClick={() => setShowManualOrderForm(false)} className="bg-gray-400 text-white px-4 py-2 rounded text-sm font-bold">Cancel</button></div></form></div>
+                                                )}
+
+                                                <div className="p-4 space-y-4 max-h-[600px] overflow-y-auto">
+                                                    {orders.map(order => (
+                                                        <div key={order.id} className={`p-4 rounded-xl border relative transition ${order.status === 'pending' ? 'border-orange-300 bg-orange-50 dark:bg-orange-900/10' : order.status === 'cancelled' ? 'border-red-200 bg-red-50 dark:bg-red-900/10 opacity-70' : 'dark:border-slate-700'}`}>
+                                                            {/* Order Header */}
+                                                            <div className="flex justify-between items-start mb-2"><div><span className="font-bold text-sm bg-indigo-100 text-indigo-700 px-2 py-1 rounded">{order.id}</span><span className="text-xs ml-2 opacity-60">{order.date}</span></div><div className="flex gap-2">{order.status === 'pending' && <button onClick={() => handleCancelOrder(order.id)} className="bg-red-100 text-red-600 px-2 py-1 rounded-full text-xs font-bold hover:bg-red-200 flex items-center gap-1"><X size={12}/> Cancel</button>}<span className={`text-xs font-bold px-2 py-1 rounded-full uppercase ${order.status === 'pending' ? 'bg-orange-500 text-white' : order.status === 'cancelled' ? 'bg-red-500 text-white' : 'bg-green-500 text-white'}`}>{order.status}</span></div></div>
+                                                            
+                                                            {/* Editable Amounts */}
+                                                            <div className="grid md:grid-cols-2 gap-4 mb-3">
+                                                                <div className="text-sm"><div className="flex items-center gap-1 opacity-60 text-xs uppercase">USER PAID</div>{order.status === 'pending' ? <input type="number" value={order.sendAmount} onChange={(e) => handleOrderUpdate(order.id, 'sendAmount', e.target.value)} className="font-bold text-red-500 w-full bg-transparent border-b border-dashed border-red-300 outline-none"/> : <div className="font-bold text-red-500">{order.sendAmount} {services.find(s=>s.id===order.sendServiceId)?.unit_name}</div>}</div>
+                                                                <div className="text-sm text-right"><div className="flex items-center justify-end gap-1 opacity-60 text-xs uppercase">USER RECEIVES</div>{order.status === 'pending' ? <input type="number" value={order.receiveAmount} onChange={(e) => handleOrderUpdate(order.id, 'receiveAmount', e.target.value)} className="font-bold text-green-500 w-full bg-transparent border-b border-dashed border-green-300 outline-none text-right"/> : <div className="font-bold text-green-500">{order.receiveAmount} {services.find(s=>s.id===order.receiveServiceId)?.unit_name}</div>}</div>
+                                                            </div>
+
+                                                            {/* User Data & Actions */}
+                                                            <div className={`p-3 rounded-lg text-sm mb-2 flex justify-between items-center ${darkMode ? 'bg-slate-900' : 'bg-white border'}`}><span><b className="text-xs opacity-50 block">CONTACT:</b> {order.userData}</span><button onClick={() => copyToClipboard(order.userData)}><Copy size={14}/></button></div>
+                                                            <div className={`p-3 rounded-lg text-sm mb-3 flex justify-between items-center ${darkMode ? 'bg-slate-900' : 'bg-white border'}`}><span><b className="text-xs opacity-50 block">DATA:</b> {order.trxId}</span><button onClick={() => copyToClipboard(order.trxId)}><Copy size={14}/></button></div>
+                                                            {order.status === 'pending' && <div className="flex gap-2"><input id={`d-${order.id}`} type="text" placeholder="Delivery Data" className={`flex-1 p-2 rounded border text-sm outline-none ${darkMode ? 'bg-slate-900 border-slate-600' : 'bg-white'}`}/><button onClick={() => handleDeliverOrder(order.id)} className="bg-green-600 text-white px-4 py-2 rounded text-sm font-bold hover:bg-green-700 flex items-center gap-2"><CheckCircle size={16}/> Approve</button></div>}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Tab: Methods */}
+                                        {adminTab === 'methods' && (
+                                            <div className="space-y-4">
+                                                {showAddMethodForm && (
+                                                    <div className={`p-6 rounded-xl border animate-fade-in ${darkMode ? 'bg-slate-800 border-slate-700' : 'bg-indigo-50 border-indigo-100'}`}><h4 className="font-bold mb-4">Add New Method</h4><form onSubmit={handleAddService} className="space-y-4"><div className="grid grid-cols-2 gap-4"><input name="name" required placeholder="Name" className={`p-3 rounded-lg text-sm border outline-none w-full ${darkMode ? 'bg-slate-800 border-slate-600' : 'bg-white'}`}/><select name="type" className={`p-3 rounded-lg text-sm border outline-none w-full ${darkMode ? 'bg-slate-800 border-slate-600' : 'bg-white'}`}><option value="currency">Currency</option><option value="account">Account</option></select></div><input name="payment" required placeholder="Our Pay Address" className={`p-3 rounded-lg text-sm border outline-none w-full ${darkMode ? 'bg-slate-800 border-slate-600' : 'bg-white'}`}/><div className="grid grid-cols-2 gap-4"><input name="unit" required placeholder="Unit" className={`p-3 rounded-lg text-sm border outline-none w-full ${darkMode ? 'bg-slate-800 border-slate-600' : 'bg-white'}`}/><input name="rate" required type="number" placeholder="Rate" className={`p-3 rounded-lg text-sm border outline-none w-full ${darkMode ? 'bg-slate-800 border-slate-600' : 'bg-white'}`}/></div><input name="label" required placeholder="User Input Label" className={`p-3 rounded-lg text-sm border outline-none w-full ${darkMode ? 'bg-slate-800 border-slate-600' : 'bg-white'}`}/><div className="flex gap-2"><button type="button" onClick={() => setShowAddMethodForm(false)} className="px-4 py-2 rounded-lg bg-gray-500 text-white font-bold text-sm">Cancel</button><button type="submit" className="px-4 py-2 rounded-lg bg-green-600 text-white font-bold text-sm">Save</button></div></form></div>
+                                                )}
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                    {services.map(s => <div key={s.id} className={`p-4 rounded-xl border flex flex-col gap-2 ${darkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}`}><div className="flex justify-between items-center"><div className="flex items-center gap-3"><div className={`w-8 h-8 rounded-lg ${s.color} text-white flex items-center justify-center font-bold text-xs`}>{s.name[0]}</div><div className="font-bold text-sm">{s.name}</div></div><button onClick={() => setServices(services.filter(srv => srv.id !== s.id))} className="text-red-500"><Trash2 size={16}/></button></div><div className="text-xs opacity-60 bg-slate-100 dark:bg-slate-900 p-2 rounded"><b>Pay:</b> {s.payment_details}</div></div>)}
+                                                    <button onClick={() => setShowAddMethodForm(true)} className="border-2 border-dashed border-indigo-300 text-indigo-500 rounded-xl p-4 flex flex-col items-center justify-center gap-2 hover:bg-indigo-50 dark:hover:bg-slate-800 transition"><Plus size={24}/><span className="font-bold text-sm">Add New Method</span></button>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Tab: Settings */}
+                                        {adminTab === 'settings' && (
+                                            <div className={`p-6 rounded-2xl border shadow-sm ${darkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}`}><h3 className="font-bold mb-4">Site Control</h3><textarea className="w-full p-4 rounded-xl border outline-none mb-4" rows="3" value={notice} onChange={(e) => setNotice(e.target.value)}></textarea><button className="bg-indigo-600 text-white px-6 py-2 rounded-lg font-bold text-sm" onClick={() => addToast("Notice Updated", "success")}>Update Notice</button></div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* 3. LOGIN (ADMIN ONLY) */}
+                        {view === 'login' && (
+                            <div className="max-w-md mx-auto mt-10 animate-fade-in-up">
+                                <div className={`p-8 rounded-3xl border shadow-2xl text-center ${darkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-100'}`}><div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4"><ShieldAlert size={32}/></div><h2 className="text-2xl font-black mb-6">{t.login_title}</h2><form onSubmit={handleAdminLogin} className="space-y-4 text-left"><input type="text" placeholder="Username" className="w-full p-3 rounded-xl border outline-none" value={loginUser} onChange={e => setLoginUser(e.target.value)}/><input type="password" placeholder="Password" className="w-full p-3 rounded-xl border outline-none" value={loginPass} onChange={e => setLoginPass(e.target.value)}/><button className="w-full bg-red-600 text-white py-3 rounded-xl font-bold">Login</button></form></div>
+                            </div>
+                        )}
+
+                        {/* 4. DASHBOARD (PUBLIC HISTORY) */}
+                        {view === 'dashboard' && (
+                            <div className={`rounded-3xl border shadow-lg overflow-hidden min-h-[60vh] ${darkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-100'}`}>
+                                <div className="bg-slate-900 p-8 text-white flex justify-between items-center relative"><h2 className="text-2xl font-bold flex items-center gap-2"><List/> {t.dashboard_title}</h2></div>
+                                <div className="p-6 space-y-4">
+                                    {orders.length === 0 ? <div className="text-center py-10 opacity-50">No orders found</div> : orders.map(order => (
+                                        <div key={order.id} className={`p-4 rounded-xl border group hover:shadow-md transition ${darkMode ? 'bg-slate-900 border-slate-700' : 'bg-white'}`}>
+                                            <div className="flex justify-between items-center mb-2"><div><span className="font-mono text-xs opacity-50">#{order.id}</span><span className={`text-xs font-bold px-2 py-0.5 rounded ${order.status === 'completed' ? 'bg-green-100 text-green-700' : order.status === 'cancelled' ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700'}`}>{order.status}</span></div></div>
+                                            <div className="font-bold flex items-center gap-2"><span className="text-red-500">{order.sendAmount} {services.find(s=>s.id===order.sendServiceId)?.unit_name}</span><ArrowRightLeft size={14} className="opacity-50"/><span className="text-green-500">{order.receiveAmount} {services.find(s=>s.id===order.receiveServiceId)?.unit_name}</span></div>
+                                            {order.deliveryData && <div className="mt-3 bg-green-500/10 border border-green-500/20 p-3 rounded-lg text-sm text-green-600 font-mono break-all"><b>Received:</b> {order.deliveryData}</div>}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </main>
+
+                    {/* --- FOOTER & FLOATING BTN --- */}
+                    <div className="fixed bottom-6 right-6 z-50"><button onClick={openWhatsApp} className="bg-green-500 text-white p-4 rounded-full shadow-2xl hover:scale-110 transition animate-bounce-slow flex items-center gap-2"><MessageCircle size={24}/></button></div>
+                    <footer className={`py-8 text-center text-xs opacity-50 ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>&copy; 2024 Deoya Neoya Pro Max. All rights reserved.</footer>
+                </div>
+            );
         }
-        
-        // --- Let's run the app ---
-        if (!firebaseConfig || !firebaseConfig.apiKey) {
-            console.error("Firebase config is not available or invalid.");
-            document.body.innerHTML = `<div class="h-screen w-screen flex items-center justify-center bg-red-900 text-white text-2xl p-8 text-center">সাইট কনফিগারেশন ত্রুটিপূর্ণ। এটি লোড করা সম্ভব নয়।</div>`;
-        } else {
-             document.addEventListener('DOMContentLoaded', init);
-        }
 
+        // RENDER
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
     </script>
 </body>
 </html>
-
