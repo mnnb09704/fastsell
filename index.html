@@ -142,9 +142,6 @@
             }
         };
 
-        // --- GLOBAL APP ID ---
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-
         // --- APP COMPONENT ---
         function App() {
             // --- STATE MANAGEMENT ---
@@ -157,6 +154,9 @@
             const [fbApp, setFbApp] = useState(null);
             const [fbAuth, setFbAuth] = useState(null);
             const [fbDb, setFbDb] = useState(null);
+            
+            // App ID Management
+            const [appId, setAppId] = useState('default-app-id');
 
             // UI States
             const [darkMode, setDarkMode] = useState(false);
@@ -225,19 +225,7 @@
                         setServices(loadLocalMethods());
                         setOrders(loadLocalOrders());
                         setSendId("1"); setReceiveId("3");
-                        setNotice("🌟 Welcome to Fast Sell! Buy/Sell Telegram Stars instantly.");
-                        setLoading(false);
-                        return;
-                    }
-
-                    // CHECK 2: CONFIG
-                    if (typeof __firebase_config === 'undefined') {
-                        console.warn("Firebase config missing. Switching to Local Mode.");
-                        setIsLocalMode(true);
-                        setServices(loadLocalMethods());
-                        setOrders(loadLocalOrders());
-                        setSendId("1"); setReceiveId("3");
-                        setNotice("🌟 Welcome to Fast Sell! Buy/Sell Telegram Stars instantly.");
+                        setNotice("🌟 Offline Mode: Fast Sell (Script Load Error)");
                         setLoading(false);
                         return;
                     }
@@ -245,7 +233,31 @@
                     try {
                         const { initializeApp, getAuth, signInAnonymously, signInWithCustomToken, getFirestore, onAuthStateChanged } = fbModules;
                         
-                        const config = JSON.parse(__firebase_config);
+                        let config;
+                        let activeAppId;
+
+                        // LIVE CONFIG FALLBACK (Your original config)
+                        const liveConfig = {
+                            apiKey: "AIzaSyCA4XZ7psdNgAnBAg4yod5Rut4nKnSEuYA",
+                            authDomain: "exchange-7bf78.firebaseapp.com",
+                            databaseURL: "https://exchange-7bf78-default-rtdb.firebaseio.com",
+                            projectId: "exchange-7bf78",
+                            storageBucket: "exchange-7bf78.firebasestorage.app",
+                            messagingSenderId: "536936205976",
+                            appId: "1:536936205976:web:24e368918f2eb7a61ccaed"
+                        };
+
+                        if (typeof __firebase_config !== 'undefined') {
+                            config = JSON.parse(__firebase_config);
+                            activeAppId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+                        } else {
+                            // Fallback to Live Config if environment variable is missing
+                            config = liveConfig;
+                            activeAppId = 'fast-sell-live';
+                        }
+                        
+                        setAppId(activeAppId);
+
                         const app = initializeApp(config);
                         const auth = getAuth(app);
                         const db = getFirestore(app);
@@ -327,7 +339,7 @@
                     unsubNotice();
                 };
 
-            }, [user, isLocalMode, fbDb, sendId]);
+            }, [user, isLocalMode, fbDb, sendId, appId]);
 
 
             const t = translations[lang];
@@ -883,4 +895,3 @@
     </script>
 </body> 
 </html>
-
