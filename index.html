@@ -49,43 +49,17 @@
     </script>
     
     <style>
-        #error-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 9999; padding: 20px; color: red; font-family: monospace; border-top: 5px solid red; }
-        .loading { display: flex; justify-content: center; align-items: center; height: 100vh; font-family: sans-serif; color: #666; }
+        .loading { display: flex; justify-content: center; align-items: center; height: 100vh; font-family: sans-serif; color: #666; flex-direction: column; gap: 10px; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 transition-colors duration-300">
     
-    <div id="error-overlay">
-        <h2 style="font-size: 20px; font-weight: bold; margin-bottom: 10px;">System Error</h2>
-        <pre id="error-msg" style="background: #f0f0f0; padding: 15px; border-radius: 8px; overflow: auto; font-size: 12px;"></pre>
-    </div>
-
-    <div id="root"><div class="loading">Loading Fast Sell...</div></div>
-
-    <script>
-        window.onerror = function(message, source, lineno, colno, error) {
-            document.getElementById('error-overlay').style.display = 'block';
-            document.getElementById('error-msg').innerText = "Error: " + message + "\nLine: " + lineno;
-        };
-    </script>
+    <div id="root"><div class="loading"><div>Loading Fast Sell...</div><div style="font-size: 12px; opacity: 0.7;">Connecting to database...</div></div></div>
 
     <script type="text/babel">
         const { useState, useEffect } = React;
-
-        // --- FIREBASE INIT ---
-        let db, auth;
-        let appId = 'default-app-id'; 
-        
-        // Ensure modules are loaded
-        const waitForFirebase = () => new Promise(resolve => {
-            const check = () => {
-                if (window.firebaseModules) resolve(window.firebaseModules);
-                else setTimeout(check, 100);
-            };
-            check();
-        });
 
         // --- INTERNAL ICON SYSTEM ---
         const IconBase = ({ children, size = 24, className = "" }) => (
@@ -134,7 +108,7 @@
         const defaultServices = [
             { id: "1", name: "bKash Personal", type: "currency", unit_name: "BDT", buy_rate: 1, sell_rate: 1, reserve: 50000, min_limit: 50, max_limit: 25000, user_input_label: "Your bKash Number", payment_details: "01722051341", color: "bg-pink-600" },
             { id: "2", name: "Nagad Personal", type: "currency", unit_name: "BDT", buy_rate: 1, sell_rate: 1, reserve: 50000, min_limit: 50, max_limit: 25000, user_input_label: "Your Nagad Number", payment_details: "01722051341", color: "bg-orange-500" },
-            { id: "3", name: "Telegram Stars", type: "account", unit_name: "Stars", buy_rate: 2.20, sell_rate: 2.80, reserve: 10000, min_limit: 15, max_limit: 5000, user_input_label: "Your Telegram User ID/Link", payment_details: "@starbuyerbd", color: "bg-blue-500" }
+            { id: "3", name: "Telegram Stars", type: "account", unit_name: "Stars", buy_rate: 1.50, sell_rate: 1.70, reserve: 10000, min_limit: 150, max_limit: 5000, user_input_label: "Your Telegram User ID/Link", payment_details: "@starbuyerbd", color: "bg-blue-500" }
         ];
 
         const translations = {
@@ -168,6 +142,9 @@
             }
         };
 
+        // --- GLOBAL APP ID ---
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
         // --- APP COMPONENT ---
         function App() {
             // --- STATE MANAGEMENT ---
@@ -176,7 +153,10 @@
             const [notice, setNotice] = useState("Loading...");
             const [user, setUser] = useState(null);
             const [loading, setLoading] = useState(true);
-            const [isLocalMode, setIsLocalMode] = useState(false); // NEW: Fallback mode
+            const [isLocalMode, setIsLocalMode] = useState(false);
+            const [fbApp, setFbApp] = useState(null);
+            const [fbAuth, setFbAuth] = useState(null);
+            const [fbDb, setFbDb] = useState(null);
 
             // UI States
             const [darkMode, setDarkMode] = useState(false);
@@ -216,114 +196,139 @@
                 return [];
             };
 
-            // --- FIREBASE INTEGRATION ---
-        useEffect(() => {
-            const initFirebase = async () => {
-                try {
-                    const fb = await waitForFirebase();
-                    
-                    let firebaseConfig;
-                    let app;
-
-                    // 1. CONFIG SETUP
-                    if (typeof __firebase_config !== 'undefined' && __firebase_config) {
-                            firebaseConfig = JSON.parse(__firebase_config);
-                            app = fb.initializeApp(firebaseConfig);
-                            auth = fb.getAuth(app);
-                            db = fb.getFirestore(app);
-                            if (typeof __app_id !== 'undefined') appId = __app_id;
-                            
-                            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                                await fb.signInWithCustomToken(auth, __initial_auth_token);
-                            } else {
-                                await fb.signInAnonymously(auth);
-                            }
-                    } else {
-                        // **************************************************
-                        // YOUR LIVE CONFIGURATION (Online Mode)
-                        // **************************************************
-                        firebaseConfig = {
-                            apiKey: "AIzaSyCA4XZ7psdNgAnBAg4yod5Rut4nKnSEuYA",
-                            authDomain: "exchange-7bf78.firebaseapp.com",
-                            databaseURL: "https://exchange-7bf78-default-rtdb.firebaseio.com",
-                            projectId: "exchange-7bf78",
-                            storageBucket: "exchange-7bf78.firebasestorage.app",
-                            messagingSenderId: "536936205976",
-                            appId: "1:536936205976:web:24e368918f2eb7a61ccaed"
-                        };
-                        
-                        appId = 'fast-sell-live'; // Internal ID for database path
-                        app = fb.initializeApp(firebaseConfig);
-                        auth = fb.getAuth(app);
-                        db = fb.getFirestore(app);
-                        await fb.signInAnonymously(auth);
+            // --- FIREBASE INITIALIZATION & AUTH (EFFECT 1) ---
+            useEffect(() => {
+                const initFirebase = async () => {
+                    // RETRY MECHANISM: Wait until modules are loaded
+                    let fbModules = window.firebaseModules;
+                    if (!fbModules) {
+                        await new Promise(resolve => {
+                            let attempts = 0;
+                            const check = setInterval(() => {
+                                attempts++;
+                                if (window.firebaseModules) {
+                                    clearInterval(check);
+                                    resolve(window.firebaseModules);
+                                } else if (attempts > 50) { // 5 seconds max wait
+                                    clearInterval(check);
+                                    resolve(null);
+                                }
+                            }, 100);
+                        });
+                        fbModules = window.firebaseModules;
                     }
-                    
-                    fb.onAuthStateChanged(auth, (u) => setUser(u));
 
-                        // 2. LISTENERS WITH FAILSAFE
-                        const methodsCol = fb.collection(db, 'artifacts', appId, 'public', 'data', 'methods');
-                        fb.onSnapshot(methodsCol, (snap) => {
-                            const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                            if (list.length === 0) {
-                                // Try initializing if empty
-                                defaultServices.forEach(s => fb.addDoc(methodsCol, s).catch(() => {}));
-                                // If write fails, we might still see empty list, so load defaults
-                                if (!isLocalMode) {
-                                     // Don't override if we already switched to local
-                                     setServices(defaultServices);
-                                     if (!sendId) { setSendId("1"); setReceiveId("3"); }
-                                }
-                            } else {
-                                setServices(list.sort((a,b) => a.id - b.id));
-                                if(!sendId && list.length > 0) {
-                                    setSendId(list[0].id);
-                                    setReceiveId(list[2]?.id || list[0].id);
-                                }
-                            }
-                        }, (err) => {
-                            console.error("Method Sync Error:", err);
-                            // FALLBACK TO LOCAL
-                            setIsLocalMode(true);
-                            setServices(loadLocalMethods());
-                            setSendId("1"); setReceiveId("3");
-                            addToast("Offline Mode Activated", "warning");
-                        });
-
-                        const ordersCol = fb.collection(db, 'artifacts', appId, 'public', 'data', 'orders');
-                        fb.onSnapshot(ordersCol, (snap) => {
-                            const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                            setOrders(list.sort((a,b) => new Date(b.date) - new Date(a.date)));
-                        }, (err) => {
-                            console.error("Orders Sync Error", err);
-                            // FALLBACK TO LOCAL
-                            setIsLocalMode(true);
-                            setOrders(loadLocalOrders());
-                        });
-
-                        const noticeDoc = fb.doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'global');
-                        fb.onSnapshot(noticeDoc, (snap) => {
-                            if (snap.exists()) setNotice(snap.data().notice);
-                            else setNotice("🌟 Welcome to Fast Sell! Buy/Sell Telegram Stars instantly.");
-                            setLoading(false);
-                        }, (err) => {
-                            setNotice("🌟 Welcome to Fast Sell! Buy/Sell Telegram Stars instantly (Offline).");
-                            setLoading(false);
-                        });
-
-                    } catch (e) {
-                        console.error("Init Error:", e);
-                        // HARD FALLBACK
+                    // CHECK 1: MODULES
+                    if (!fbModules) {
+                        console.warn("Firebase scripts failed to load. Switching to Local Mode.");
                         setIsLocalMode(true);
                         setServices(loadLocalMethods());
                         setOrders(loadLocalOrders());
                         setSendId("1"); setReceiveId("3");
-                        setNotice("🌟 Offline Mode: Database connection failed.");
+                        setNotice("🌟 Offline Mode: Fast Sell (Script Load Error)");
+                        setLoading(false);
+                        return;
+                    }
+
+                    // CHECK 2: CONFIG
+                    if (typeof __firebase_config === 'undefined') {
+                        console.warn("Firebase config missing. Switching to Local Mode.");
+                        setIsLocalMode(true);
+                        setServices(loadLocalMethods());
+                        setOrders(loadLocalOrders());
+                        setSendId("1"); setReceiveId("3");
+                        setNotice("🌟 Offline Mode: Fast Sell (Local Demo)");
+                        setLoading(false);
+                        return;
+                    }
+
+                    try {
+                        const { initializeApp, getAuth, signInAnonymously, signInWithCustomToken, getFirestore, onAuthStateChanged } = fbModules;
+                        
+                        const config = JSON.parse(__firebase_config);
+                        const app = initializeApp(config);
+                        const auth = getAuth(app);
+                        const db = getFirestore(app);
+
+                        setFbApp(app);
+                        setFbAuth(auth);
+                        setFbDb(db);
+
+                        // Auth Logic
+                        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                            try {
+                                await signInWithCustomToken(auth, __initial_auth_token);
+                            } catch(e) {
+                                console.log("Custom token failed, trying anonymous");
+                                await signInAnonymously(auth);
+                            }
+                        } else {
+                            await signInAnonymously(auth);
+                        }
+
+                        const unsubscribe = onAuthStateChanged(auth, (u) => {
+                            if (u) setUser(u);
+                        });
+                        return () => unsubscribe();
+                    } catch (e) {
+                        console.error("Firebase Init Error:", e);
+                        setIsLocalMode(true);
+                        setServices(loadLocalMethods());
+                        setOrders(loadLocalOrders());
                         setLoading(false);
                     }
                 };
                 initFirebase();
             }, []);
+
+            // --- DATA LISTENERS (EFFECT 2) ---
+            useEffect(() => {
+                if (!user || isLocalMode || !fbDb) return;
+
+                const { collection, onSnapshot, addDoc, doc } = window.firebaseModules;
+
+                // 1. Methods Listener
+                const methodsCol = collection(fbDb, 'artifacts', appId, 'public', 'data', 'methods');
+                const unsubMethods = onSnapshot(methodsCol, (snap) => {
+                    const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                    if (list.length === 0) {
+                        // Init defaults if empty
+                        defaultServices.forEach(s => addDoc(methodsCol, s).catch(console.error));
+                    } else {
+                        setServices(list.sort((a,b) => a.id - b.id));
+                        if(!sendId && list.length > 0) {
+                            setSendId(list[0].id);
+                            setReceiveId(list[2]?.id || list[0].id);
+                        }
+                    }
+                }, (err) => {
+                    console.error("Method sync error:", err);
+                    setIsLocalMode(true);
+                });
+
+                // 2. Orders Listener
+                const ordersCol = collection(fbDb, 'artifacts', appId, 'public', 'data', 'orders');
+                const unsubOrders = onSnapshot(ordersCol, (snap) => {
+                    const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                    setOrders(list.sort((a,b) => new Date(b.date) - new Date(a.date)));
+                }, (err) => console.error("Orders sync error:", err));
+
+                // 3. Notice Listener
+                const noticeDoc = doc(fbDb, 'artifacts', appId, 'public', 'data', 'settings', 'global');
+                const unsubNotice = onSnapshot(noticeDoc, (snap) => {
+                    if (snap.exists()) setNotice(snap.data().notice);
+                    else setNotice("🌟 Welcome to Fast Sell! Buy/Sell Telegram Stars instantly.");
+                    setLoading(false);
+                }, () => setLoading(false));
+
+                return () => {
+                    unsubMethods();
+                    unsubOrders();
+                    unsubNotice();
+                };
+
+            }, [user, isLocalMode, fbDb, sendId]);
+
 
             const t = translations[lang];
             const sendService = services.find(s => s.id === sendId) || services[0] || {};
@@ -385,10 +390,10 @@
                 };
 
                 // TRY FIREBASE
-                if (!isLocalMode && user) {
+                if (!isLocalMode && user && fbDb) {
                     try {
-                        const fb = window.firebaseModules;
-                        await fb.addDoc(fb.collection(db, 'artifacts', appId, 'public', 'data', 'orders'), newOrder);
+                        const { addDoc, collection } = window.firebaseModules;
+                        await addDoc(collection(fbDb, 'artifacts', appId, 'public', 'data', 'orders'), newOrder);
                         addToast("Order Placed!", "success");
                         finalizeOrder();
                         return;
@@ -449,14 +454,14 @@
                 }
 
                 // TRY FIREBASE
-                if (!isLocalMode && user) {
+                if (!isLocalMode && user && fbDb) {
                     try {
-                        const fb = window.firebaseModules;
+                        const { doc, updateDoc, addDoc, collection } = window.firebaseModules;
                         if (editingMethod) {
-                            const docRef = fb.doc(db, 'artifacts', appId, 'public', 'data', 'methods', editingMethod.id);
-                            await fb.updateDoc(docRef, methodData);
+                            const docRef = doc(fbDb, 'artifacts', appId, 'public', 'data', 'methods', editingMethod.id);
+                            await updateDoc(docRef, methodData);
                         } else {
-                            await fb.addDoc(fb.collection(db, 'artifacts', appId, 'public', 'data', 'methods'), methodData);
+                            await addDoc(collection(fbDb, 'artifacts', appId, 'public', 'data', 'methods'), methodData);
                         }
                         addToast("Method Saved!", "success");
                         finalizeMethod();
@@ -497,14 +502,14 @@
 
             const handleOrderAction = async (id, action, data = null) => {
                 // TRY FIREBASE
-                 if (!isLocalMode && user) {
+                 if (!isLocalMode && user && fbDb) {
                     try {
-                        const fb = window.firebaseModules;
-                        const docRef = fb.doc(db, 'artifacts', appId, 'public', 'data', 'orders', id);
-                        if (action === 'deliver') await fb.updateDoc(docRef, { status: 'completed', deliveryData: data });
-                        if (action === 'cancel') await fb.updateDoc(docRef, { status: 'cancelled' });
-                        if (action === 'update_send') await fb.updateDoc(docRef, { sendAmount: data });
-                        if (action === 'update_receive') await fb.updateDoc(docRef, { receiveAmount: data });
+                        const { doc, updateDoc } = window.firebaseModules;
+                        const docRef = doc(fbDb, 'artifacts', appId, 'public', 'data', 'orders', id);
+                        if (action === 'deliver') await updateDoc(docRef, { status: 'completed', deliveryData: data });
+                        if (action === 'cancel') await updateDoc(docRef, { status: 'cancelled' });
+                        if (action === 'update_send') await updateDoc(docRef, { sendAmount: data });
+                        if (action === 'update_receive') await updateDoc(docRef, { receiveAmount: data });
                         
                         if(action === 'deliver' || action === 'cancel') addToast(`Order ${action}ed!`, action === 'cancel' ? 'error' : 'success');
                         return;
@@ -532,10 +537,10 @@
             
             const handleSaveNotice = async () => {
                  // Try firebase
-                 if (!isLocalMode && user) {
+                 if (!isLocalMode && user && fbDb) {
                      try {
-                         const fb = window.firebaseModules;
-                         await fb.setDoc(fb.doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'global'), { notice });
+                         const { doc, setDoc } = window.firebaseModules;
+                         await setDoc(doc(fbDb, 'artifacts', appId, 'public', 'data', 'settings', 'global'), { notice });
                          addToast("Notice saved!", "success");
                          return;
                      } catch(e) {}
@@ -546,10 +551,10 @@
             const deleteMethod = async (id) => {
                 if(!confirm('Delete?')) return;
                 
-                if (!isLocalMode && user) {
+                if (!isLocalMode && user && fbDb) {
                     try {
-                        const fb = window.firebaseModules;
-                        await fb.deleteDoc(fb.doc(db, 'artifacts', appId, 'public', 'data', 'methods', id));
+                        const { doc, deleteDoc } = window.firebaseModules;
+                        await deleteDoc(doc(fbDb, 'artifacts', appId, 'public', 'data', 'methods', id));
                         addToast("Method deleted", "success");
                         return;
                     } catch(e) { setIsLocalMode(true); }
@@ -563,7 +568,7 @@
 
             const openWhatsApp = () => window.open(`https://wa.me/${adminWhatsApp}`, '_blank');
             
-            if(loading) return <div className="loading">Connecting to Server...</div>;
+            if(loading) return <div className="loading"><div>Loading Fast Sell...</div><div style={{fontSize: 12, opacity: 0.7}}>Connecting to database...</div></div>;
 
             return (
                 <div className={`min-h-screen transition-colors duration-300 font-sans ${darkMode ? 'bg-slate-900 text-slate-100' : 'bg-slate-50 text-slate-800'}`}>
@@ -887,5 +892,5 @@
 
         ReactDOM.createRoot(document.getElementById('root')).render(<App />);
     </script>
-</body>
+</body> 
 </html>
