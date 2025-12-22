@@ -225,7 +225,7 @@
                         setServices(loadLocalMethods());
                         setOrders(loadLocalOrders());
                         setSendId("1"); setReceiveId("3");
-                        setNotice("🌟 Offline Mode: Fast Sell (Script Load Error)");
+                        setNotice("🌟 Welcome to Fast Sell! Buy/Sell Telegram Stars instantly.");
                         setLoading(false);
                         return;
                     }
@@ -237,7 +237,7 @@
                         setServices(loadLocalMethods());
                         setOrders(loadLocalOrders());
                         setSendId("1"); setReceiveId("3");
-                        setNotice("🌟 Offline Mode: Fast Sell (Local Demo)");
+                        setNotice("🌟 Welcome to Fast Sell! Buy/Sell Telegram Stars instantly.");
                         setLoading(false);
                         return;
                     }
@@ -408,7 +408,7 @@
                 const updatedOrders = [newOrder, ...currentOrders];
                 localStorage.setItem('local_orders', JSON.stringify(updatedOrders));
                 setOrders(updatedOrders);
-                addToast("Order Placed (Local Mode)", "warning");
+                addToast("Order Placed Successfully!", "success");
                 finalizeOrder();
             };
 
@@ -483,7 +483,7 @@
                 }
                 localStorage.setItem('local_methods', JSON.stringify(updatedMethods));
                 setServices(updatedMethods);
-                addToast("Method Saved (Local Mode)", "warning");
+                addToast("Method Saved Successfully!", "success");
                 finalizeMethod();
             };
             
@@ -492,7 +492,7 @@
                 localStorage.setItem('local_methods', JSON.stringify(defaultServices));
                 setServices(defaultServices);
                 setIsLocalMode(true); // Force local to avoid sync mixup
-                addToast("Defaults Restored (Local Mode)", "success");
+                addToast("Defaults Restored!", "success");
             };
 
             const startEditMethod = (method) => {
@@ -532,7 +532,7 @@
                  });
                  localStorage.setItem('local_orders', JSON.stringify(updatedOrders));
                  setOrders(updatedOrders);
-                 addToast("Updated (Local Mode)", "warning");
+                 addToast("Updated Successfully!", "success");
             };
             
             const handleSaveNotice = async () => {
@@ -563,7 +563,7 @@
                 const currentMethods = loadLocalMethods().filter(m => m.id !== id);
                 localStorage.setItem('local_methods', JSON.stringify(currentMethods));
                 setServices(currentMethods);
-                addToast("Deleted (Local Mode)", "warning");
+                addToast("Deleted Successfully!", "success");
             }
 
             const openWhatsApp = () => window.open(`https://wa.me/${adminWhatsApp}`, '_blank');
@@ -592,7 +592,6 @@
                                     <h1 className="font-black text-xl leading-none">Fast Sell</h1>
                                     <div className="flex items-center gap-1">
                                         <p className="text-[10px] opacity-60">Trusted Exchange</p>
-                                        {isLocalMode && <span className="text-[10px] bg-red-100 text-red-600 px-1 rounded font-bold">OFFLINE MODE</span>}
                                     </div>
                                 </div>
                             </div>
@@ -637,16 +636,6 @@
                                         <div className="p-6 space-y-6">
                                             {exchangeStep === 1 ? (
                                                 <div className="space-y-4 animate-fade-in">
-                                                    {isLocalMode && (
-                                                        <div className="bg-red-50 border border-red-200 p-3 rounded-xl text-red-600 text-xs font-bold flex flex-wrap gap-2 items-center justify-between">
-                                                            <div className="flex gap-2 items-center">
-                                                                <WifiOff size={16}/> Offline Mode Active (Local Save)
-                                                            </div>
-                                                            <button onClick={() => window.location.reload()} className="bg-red-600 text-white px-3 py-1 rounded-lg flex items-center gap-1 hover:bg-red-700 transition">
-                                                                <RefreshCw size={12}/> Retry Online
-                                                            </button>
-                                                        </div>
-                                                    )}
                                                     <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
                                                         <div className="flex justify-between text-xs font-bold uppercase text-slate-500 mb-2">
                                                             <span>{t.send}</span>
