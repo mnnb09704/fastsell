@@ -184,14 +184,15 @@
             const [editingMethod, setEditingMethod] = useState(null);
 
             // --- DATA LOADING HELPERS ---
+            // Changed keys to _v2 to force refresh defaults
             const loadLocalMethods = () => {
-                const local = localStorage.getItem('local_methods');
+                const local = localStorage.getItem('local_methods_v2');
                 if (local) return JSON.parse(local);
                 return defaultServices;
             };
 
             const loadLocalOrders = () => {
-                const local = localStorage.getItem('local_orders');
+                const local = localStorage.getItem('local_orders_v2');
                 if (local) return JSON.parse(local);
                 return [];
             };
@@ -225,7 +226,7 @@
                         setServices(loadLocalMethods());
                         setOrders(loadLocalOrders());
                         setSendId("1"); setReceiveId("3");
-                        setNotice("🌟 Offline Mode: Fast Sell (Script Load Error)");
+                        setNotice("🌟 Welcome to Fast Sell! Buy/Sell Telegram Stars instantly.");
                         setLoading(false);
                         return;
                     }
@@ -345,7 +346,7 @@
             const t = translations[lang];
             const sendService = services.find(s => s.id === sendId) || services[0] || {};
             const receiveService = services.find(s => s.id === receiveId) || services[0] || {};
-            const adminWhatsApp = "8801754051321";
+            const adminWhatsApp = "8801722051341";
 
             // --- FUNCTIONS ---
             const addToast = (msg, type = 'success') => {
@@ -418,7 +419,7 @@
                 // LOCAL FALLBACK
                 const currentOrders = loadLocalOrders();
                 const updatedOrders = [newOrder, ...currentOrders];
-                localStorage.setItem('local_orders', JSON.stringify(updatedOrders));
+                localStorage.setItem('local_orders_v2', JSON.stringify(updatedOrders));
                 setOrders(updatedOrders);
                 addToast("Order Placed Successfully!", "success");
                 finalizeOrder();
@@ -493,7 +494,7 @@
                     methodData.id = Date.now().toString();
                     updatedMethods = [...currentMethods, methodData];
                 }
-                localStorage.setItem('local_methods', JSON.stringify(updatedMethods));
+                localStorage.setItem('local_methods_v2', JSON.stringify(updatedMethods));
                 setServices(updatedMethods);
                 addToast("Method Saved Successfully!", "success");
                 finalizeMethod();
@@ -501,7 +502,7 @@
             
             const handleResetDefaults = async () => {
                 // LOCAL ONLY FOR SAFETY IN DEMO
-                localStorage.setItem('local_methods', JSON.stringify(defaultServices));
+                localStorage.setItem('local_methods_v2', JSON.stringify(defaultServices));
                 setServices(defaultServices);
                 setIsLocalMode(true); // Force local to avoid sync mixup
                 addToast("Defaults Restored!", "success");
@@ -542,7 +543,7 @@
                      if (action === 'update_receive') updates = { receiveAmount: data };
                      return { ...o, ...updates };
                  });
-                 localStorage.setItem('local_orders', JSON.stringify(updatedOrders));
+                 localStorage.setItem('local_orders_v2', JSON.stringify(updatedOrders));
                  setOrders(updatedOrders);
                  addToast("Updated Successfully!", "success");
             };
@@ -573,7 +574,7 @@
                 }
 
                 const currentMethods = loadLocalMethods().filter(m => m.id !== id);
-                localStorage.setItem('local_methods', JSON.stringify(currentMethods));
+                localStorage.setItem('local_methods_v2', JSON.stringify(currentMethods));
                 setServices(currentMethods);
                 addToast("Deleted Successfully!", "success");
             }
