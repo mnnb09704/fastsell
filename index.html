@@ -340,7 +340,8 @@
                     unsubNotice();
                 };
 
-            }, [user, isLocalMode, fbDb, sendId, appId]);
+            // FIX: Removed 'sendId' from dependency array to prevent re-subscription loops which break real-time
+            }, [user, isLocalMode, fbDb, appId]);
 
 
             const t = translations[lang];
@@ -605,6 +606,7 @@
                                     <h1 className="font-black text-xl leading-none">Fast Sell</h1>
                                     <div className="flex items-center gap-1">
                                         <p className="text-[10px] opacity-60">Trusted Exchange</p>
+                                        <span className={`w-2 h-2 rounded-full ${isLocalMode ? 'bg-red-500' : 'bg-green-500'}`} title={isLocalMode ? 'Local Mode' : 'Live Realtime'}></span>
                                     </div>
                                 </div>
                             </div>
