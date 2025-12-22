@@ -237,24 +237,24 @@
                         let config;
                         let activeAppId;
 
-                        // LIVE CONFIG FALLBACK (Your original config)
+                        // LIVE CONFIG (USER PROVIDED)
                         const liveConfig = {
-                            apiKey: "AIzaSyCA4XZ7psdNgAnBAg4yod5Rut4nKnSEuYA",
-                            authDomain: "exchange-7bf78.firebaseapp.com",
-                            databaseURL: "https://exchange-7bf78-default-rtdb.firebaseio.com",
-                            projectId: "exchange-7bf78",
-                            storageBucket: "exchange-7bf78.firebasestorage.app",
-                            messagingSenderId: "536936205976",
-                            appId: "1:536936205976:web:24e368918f2eb7a61ccaed"
+                            apiKey: "AIzaSyAMxyIV1vwfh7cy_DnKmsiM9-ouH1TB99E",
+                            authDomain: "exange-4870a.firebaseapp.com",
+                            databaseURL: "https://exange-4870a-default-rtdb.firebaseio.com",
+                            projectId: "exange-4870a",
+                            storageBucket: "exange-4870a.firebasestorage.app",
+                            messagingSenderId: "873797303846",
+                            appId: "1:873797303846:web:3363900b70a6574e8a30e7"
                         };
 
                         if (typeof __firebase_config !== 'undefined') {
                             config = JSON.parse(__firebase_config);
                             activeAppId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
                         } else {
-                            // Fallback to Live Config if environment variable is missing
+                            // Use User's Config when downloading/making public
                             config = liveConfig;
-                            activeAppId = 'fast-sell-live';
+                            activeAppId = 'fast-sell-live'; 
                         }
                         
                         setAppId(activeAppId);
@@ -346,7 +346,7 @@
             const t = translations[lang];
             const sendService = services.find(s => s.id === sendId) || services[0] || {};
             const receiveService = services.find(s => s.id === receiveId) || services[0] || {};
-            const adminWhatsApp = "880163521341";
+            const adminWhatsApp = "8801722051341";
 
             // --- FUNCTIONS ---
             const addToast = (msg, type = 'success') => {
