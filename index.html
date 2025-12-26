@@ -1,1 +1,902 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fast Sell - Trusted Exchange</title>
+    
+    <!-- React & ReactDOM -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    
+    <!-- Babel -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, setDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Expose to window for React
+        window.firebaseModules = { initializeApp, getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken, getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, setDoc, query, orderBy };
+    </script>
+    
+    <!-- Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- Tailwind Config -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    animation: {
+                        'fade-in': 'fadeIn 0.5s ease-out',
+                        'marquee': 'marquee 25s linear infinite',
+                    },
+                    keyframes: {
+                        fadeIn: { '0%': { opacity: '0', transform: 'translateY(10px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
+                        marquee: { '0%': { transform: 'translateX(100%)' }, '100%': { transform: 'translateX(-100%)' } }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        .loading { display: flex; justify-content: center; align-items: center; height: 100vh; font-family: sans-serif; color: #666; flex-direction: column; gap: 10px; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 transition-colors duration-300">
+    
+    <div id="root"><div class="loading"><div>Loading Fast Sell...</div><div style="font-size: 12px; opacity: 0.7;">Connecting to database...</div></div></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // --- INTERNAL ICON SYSTEM ---
+        const IconBase = ({ children, size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>{children}</svg>
+        );
+
+        const Icons = {
+            ArrowRightLeft: (p) => <IconBase {...p}><path d="m16 3 4 4-4 4"/><path d="M20 7H4"/><path d="m8 21-4-4 4-4"/><path d="M4 17h16"/></IconBase>,
+            Settings: (p) => <IconBase {...p}><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.47a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></IconBase>,
+            User: (p) => <IconBase {...p}><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></IconBase>,
+            Package: (p) => <IconBase {...p}><path d="m16.5 9.4-9-5.19"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="M3.27 6.96 12 12.01l8.73-5.05"/><path d="M12 22.08V12"/></IconBase>,
+            CheckCircle: (p) => <IconBase {...p}><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></IconBase>,
+            Clock: (p) => <IconBase {...p}><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></IconBase>,
+            Trash2: (p) => <IconBase {...p}><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></IconBase>,
+            Copy: (p) => <IconBase {...p}><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></IconBase>,
+            LogOut: (p) => <IconBase {...p}><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></IconBase>,
+            Bell: (p) => <IconBase {...p}><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></IconBase>,
+            ShieldAlert: (p) => <IconBase {...p}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></IconBase>,
+            Sun: (p) => <IconBase {...p}><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></IconBase>,
+            Moon: (p) => <IconBase {...p}><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></IconBase>,
+            MessageCircle: (p) => <IconBase {...p}><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></IconBase>,
+            LayoutDashboard: (p) => <IconBase {...p}><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></IconBase>,
+            List: (p) => <IconBase {...p}><line x1="8" x2="21" y1="6" y2="6"/><line x1="8" x2="21" y1="12" y2="12"/><line x1="8" x2="21" y1="18" y2="18"/><line x1="3" x2="3.01" y1="6" y2="6"/><line x1="3" x2="3.01" y1="12" y2="12"/><line x1="3" x2="3.01" y1="18" y2="18"/></IconBase>,
+            Sliders: (p) => <IconBase {...p}><line x1="4" x2="4" y1="21" y2="14"/><line x1="4" x2="4" y1="10" y2="3"/><line x1="12" x2="12" y1="21" y2="12"/><line x1="12" x2="12" y1="8" y2="3"/><line x1="20" x2="20" y1="21" y2="16"/><line x1="20" x2="20" y1="12" y2="3"/><line x1="2" x2="6" y1="14" y2="14"/><line x1="10" x2="14" y1="8" y2="8"/><line x1="18" x2="22" y1="16" y2="16"/></IconBase>,
+            X: (p) => <IconBase {...p}><path d="M18 6 6 18"/><path d="m6 6 12 12"/></IconBase>,
+            Menu: (p) => <IconBase {...p}><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></IconBase>,
+            ArrowRight: (p) => <IconBase {...p}><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></IconBase>,
+            Wallet: (p) => <IconBase {...p}><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/></IconBase>,
+            FileText: (p) => <IconBase {...p}><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></IconBase>,
+            Phone: (p) => <IconBase {...p}><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></IconBase>,
+            Plus: (p) => <IconBase {...p}><path d="M5 12h14"/><path d="M12 5v14"/></IconBase>,
+            Check: (p) => <IconBase {...p}><path d="M20 6 9 17l-5-5"/></IconBase>,
+            AlertTriangle: (p) => <IconBase {...p}><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></IconBase>,
+            Edit: (p) => <IconBase {...p}><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></IconBase>,
+            WifiOff: (p) => <IconBase {...p}><line x1="1" x2="23" y1="1" y2="23"/><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/><path d="M10.71 5.05A16 16 0 0 1 22.58 9"/><path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" x2="12.01" y1="20" y2="20"/></IconBase>,
+            RefreshCw: (p) => <IconBase {...p}><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M3 21v-5h5"/></IconBase>,
+        };
+
+        const {
+            ArrowRightLeft, Settings, User, Package, CheckCircle, Clock, Trash2, Copy, LogOut, Bell, ShieldAlert,
+            Sun, Moon, MessageCircle, LayoutDashboard, List, Sliders, X, Menu, ArrowRight, Wallet, FileText, Phone, Plus, Check, AlertTriangle, Edit, WifiOff, RefreshCw
+        } = Icons;
+
+        // --- CLEAN INITIAL DATA ---
+        // Telegram Stars payment_details -> Admin UID
+        const defaultServices = [
+            { id: "1", name: "bKash Personal", type: "currency", unit_name: "BDT", buy_rate: 1, sell_rate: 1, reserve: 50000, min_limit: 50, max_limit: 25000, user_input_label: "Your bKash Number", payment_details: "01722051341", color: "bg-pink-600" },
+            { id: "2", name: "Nagad Personal", type: "currency", unit_name: "BDT", buy_rate: 1, sell_rate: 1, reserve: 50000, min_limit: 50, max_limit: 25000, user_input_label: "Your Nagad Number", payment_details: "01722051341", color: "bg-orange-500" },
+            { id: "3", name: "Telegram Stars", type: "account", unit_name: "Stars", buy_rate: 1.55, sell_rate: 1.70, reserve: 10000, min_limit: 150, max_limit: 5000, user_input_label: "Your Telegram User ID/Link", payment_details: "@starbuyerbd", color: "bg-blue-500" }
+        ];
+
+        const translations = {
+            en: {
+                nav_home: "Home", nav_track: "Track Order", nav_admin: "Admin",
+                hero_title: "Fast Sell Exchange", hero_subtitle: "Instant Telegram Stars & Currency Exchange",
+                send: "You Send", receive: "You Receive", reserve: "Reserve",
+                exchange_btn: "Exchange Now", confirm_btn: "Confirm Order",
+                rate_title: "Today's Rates", login_title: "Admin Login", dashboard_title: "Order History",
+                admin_dash: "Dashboard", admin_orders: "Orders", admin_methods: "Methods", admin_settings: "Settings",
+                step1: "Calculator", step2: "Payment", step3: "Done",
+                pay_instruction_money: "Please send money to:",
+                pay_instruction_account: "Please send product/stars to:",
+                trx_label_money: "Enter Transaction ID (TrxID)",
+                trx_label_account: "Enter Your Telegram User ID/Link (Sender)",
+                binance_warning: "Minimum 1000 BDT required for Binance/USDT withdrawals."
+            },
+            bn: {
+                nav_home: "হোম", nav_track: "অর্ডার ট্র্যাক", nav_admin: "এডমিন",
+                hero_title: "ফাস্ট সেল এক্সচেঞ্জ", hero_subtitle: "দ্রুত টেলিগ্রাম স্টার এবং কারেন্সি এক্সচেঞ্জ",
+                send: "আপনি পাঠাবেন", receive: "আপনি পাবেন", reserve: "মজুদ",
+                exchange_btn: "এক্সচেঞ্জ করুন", confirm_btn: "অর্ডার কনফার্ম করুন",
+                rate_title: "আজকের রেট", login_title: "এডমিন লগইন", dashboard_title: "অর্ডার ইতিহাস",
+                admin_dash: "ড্যাশবোর্ড", admin_orders: "অর্ডার", admin_methods: "মেথড", admin_settings: "সেটিংস",
+                step1: "হিসাব", step2: "পেমেন্ট", step3: "সম্পন্ন",
+                pay_instruction_money: "নিচের নাম্বারে টাকা পাঠান:",
+                pay_instruction_account: "নিচের আইডিতে স্টার/প্রোডাক্ট পাঠান:",
+                trx_label_money: "Transaction ID (TrxID) দিন",
+                trx_label_account: "আপনার Telegram User ID দিন (Sender)",
+                binance_warning: "Binance/USDT তে নিতে হলে মিনিমাম ১০০০ টাকার অর্ডার হতে হবে।"
+            }
+        };
+
+        // --- APP COMPONENT ---
+        function App() {
+            // --- STATE MANAGEMENT ---
+            const [services, setServices] = useState([]);
+            const [orders, setOrders] = useState([]);
+            const [notice, setNotice] = useState("Loading...");
+            const [user, setUser] = useState(null);
+            const [loading, setLoading] = useState(true);
+            const [isLocalMode, setIsLocalMode] = useState(false);
+            const [fbApp, setFbApp] = useState(null);
+            const [fbAuth, setFbAuth] = useState(null);
+            const [fbDb, setFbDb] = useState(null);
+            
+            // App ID Management
+            const [appId, setAppId] = useState('default-app-id');
+
+            // UI States
+            const [darkMode, setDarkMode] = useState(false);
+            const [lang, setLang] = useState('bn');
+            const [view, setView] = useState('home'); 
+            const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+            const [toasts, setToasts] = useState([]);
+            const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
+            const [loginUser, setLoginUser] = useState('');
+            const [loginPass, setLoginPass] = useState('');
+
+            // Exchange States
+            const [exchangeStep, setExchangeStep] = useState(1);
+            const [sendId, setSendId] = useState("");
+            const [receiveId, setReceiveId] = useState(""); 
+            const [sendAmount, setSendAmount] = useState('');
+            const [receiveAmount, setReceiveAmount] = useState('');
+            const [userInput, setUserInput] = useState(''); 
+            const [trxInput, setTrxInput] = useState(''); 
+
+            // Admin States
+            const [adminTab, setAdminTab] = useState('dashboard');
+            const [showAddMethodForm, setShowAddMethodForm] = useState(false);
+            const [showManualOrderForm, setShowManualOrderForm] = useState(false);
+            const [editingMethod, setEditingMethod] = useState(null);
+
+            // --- DATA LOADING HELPERS ---
+            // Changed keys to _v2 to force refresh defaults
+            const loadLocalMethods = () => {
+                const local = localStorage.getItem('local_methods_v2');
+                if (local) return JSON.parse(local);
+                return defaultServices;
+            };
+
+            const loadLocalOrders = () => {
+                const local = localStorage.getItem('local_orders_v2');
+                if (local) return JSON.parse(local);
+                return [];
+            };
+
+            // --- FIREBASE INITIALIZATION & AUTH (EFFECT 1) ---
+            useEffect(() => {
+                const initFirebase = async () => {
+                    // RETRY MECHANISM: Wait until modules are loaded
+                    let fbModules = window.firebaseModules;
+                    if (!fbModules) {
+                        await new Promise(resolve => {
+                            let attempts = 0;
+                            const check = setInterval(() => {
+                                attempts++;
+                                if (window.firebaseModules) {
+                                    clearInterval(check);
+                                    resolve(window.firebaseModules);
+                                } else if (attempts > 50) { // 5 seconds max wait
+                                    clearInterval(check);
+                                    resolve(null);
+                                }
+                            }, 100);
+                        });
+                        fbModules = window.firebaseModules;
+                    }
+
+                    // CHECK 1: MODULES
+                    if (!fbModules) {
+                        console.warn("Firebase scripts failed to load. Switching to Local Mode.");
+                        setIsLocalMode(true);
+                        setServices(loadLocalMethods());
+                        setOrders(loadLocalOrders());
+                        setSendId("1"); setReceiveId("3");
+                        setNotice("🌟 Welcome to Fast Sell! Buy/Sell Telegram Stars instantly.");
+                        setLoading(false);
+                        return;
+                    }
+
+                    try {
+                        const { initializeApp, getAuth, signInAnonymously, signInWithCustomToken, getFirestore, onAuthStateChanged } = fbModules;
+                        
+                        let config;
+                        let activeAppId;
+
+                        // LIVE CONFIG (USER PROVIDED)
+                        const liveConfig = {
+                            apiKey: "AIzaSyAMxyIV1vwfh7cy_DnKmsiM9-ouH1TB99E",
+                            authDomain: "exange-4870a.firebaseapp.com",
+                            databaseURL: "https://exange-4870a-default-rtdb.firebaseio.com",
+                            projectId: "exange-4870a",
+                            storageBucket: "exange-4870a.firebasestorage.app",
+                            messagingSenderId: "873797303846",
+                            appId: "1:873797303846:web:3363900b70a6574e8a30e7"
+                        };
+
+                        if (typeof __firebase_config !== 'undefined') {
+                            config = JSON.parse(__firebase_config);
+                            activeAppId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+                        } else {
+                            // Use User's Config when downloading/making public
+                            config = liveConfig;
+                            activeAppId = 'fast-sell-live'; 
+                        }
+                        
+                        setAppId(activeAppId);
+
+                        const app = initializeApp(config);
+                        const auth = getAuth(app);
+                        const db = getFirestore(app);
+
+                        setFbApp(app);
+                        setFbAuth(auth);
+                        setFbDb(db);
+
+                        // Auth Logic
+                        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                            try {
+                                await signInWithCustomToken(auth, __initial_auth_token);
+                            } catch(e) {
+                                console.log("Custom token failed, trying anonymous");
+                                await signInAnonymously(auth);
+                            }
+                        } else {
+                            await signInAnonymously(auth);
+                        }
+
+                        const unsubscribe = onAuthStateChanged(auth, (u) => {
+                            if (u) setUser(u);
+                        });
+                        return () => unsubscribe();
+                    } catch (e) {
+                        console.error("Firebase Init Error:", e);
+                        setIsLocalMode(true);
+                        setServices(loadLocalMethods());
+                        setOrders(loadLocalOrders());
+                        setLoading(false);
+                    }
+                };
+                initFirebase();
+            }, []);
+
+            // --- DATA LISTENERS (EFFECT 2) ---
+            useEffect(() => {
+                if (!user || isLocalMode || !fbDb) return;
+
+                const { collection, onSnapshot, addDoc, doc } = window.firebaseModules;
+
+                // 1. Methods Listener
+                const methodsCol = collection(fbDb, 'artifacts', appId, 'public', 'data', 'methods');
+                const unsubMethods = onSnapshot(methodsCol, (snap) => {
+                    const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                    if (list.length === 0) {
+                        // Init defaults if empty
+                        defaultServices.forEach(s => addDoc(methodsCol, s).catch(console.error));
+                    } else {
+                        setServices(list.sort((a,b) => a.id - b.id));
+                        if(!sendId && list.length > 0) {
+                            setSendId(list[0].id);
+                            setReceiveId(list[2]?.id || list[0].id);
+                        }
+                    }
+                }, (err) => {
+                    console.error("Method sync error:", err);
+                    setIsLocalMode(true);
+                });
+
+                // 2. Orders Listener
+                const ordersCol = collection(fbDb, 'artifacts', appId, 'public', 'data', 'orders');
+                const unsubOrders = onSnapshot(ordersCol, (snap) => {
+                    const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                    setOrders(list.sort((a,b) => new Date(b.date) - new Date(a.date)));
+                }, (err) => console.error("Orders sync error:", err));
+
+                // 3. Notice Listener
+                const noticeDoc = doc(fbDb, 'artifacts', appId, 'public', 'data', 'settings', 'global');
+                const unsubNotice = onSnapshot(noticeDoc, (snap) => {
+                    if (snap.exists()) setNotice(snap.data().notice);
+                    else setNotice("🌟 Welcome to Fast Sell! Buy/Sell Telegram Stars instantly.");
+                    setLoading(false);
+                }, () => setLoading(false));
+
+                return () => {
+                    unsubMethods();
+                    unsubOrders();
+                    unsubNotice();
+                };
+
+            // FIX: Removed 'sendId' from dependency array to prevent re-subscription loops which break real-time
+            }, [user, isLocalMode, fbDb, appId]);
+
+
+            const t = translations[lang];
+            const sendService = services.find(s => s.id === sendId) || services[0] || {};
+            const receiveService = services.find(s => s.id === receiveId) || services[0] || {};
+            const adminWhatsApp = "8801728341341";
+
+            // --- FUNCTIONS ---
+            const addToast = (msg, type = 'success') => {
+                const id = Date.now();
+                setToasts(prev => [...prev, { id, msg, type }]);
+                setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 5000);
+            };
+            const removeToast = (id) => setToasts(prev => prev.filter(t => t.id !== id));
+            const toggleTheme = () => setDarkMode(!darkMode);
+            const toggleLang = () => setLang(lang === 'bn' ? 'en' : 'bn');
+
+            const handleAdminLogin = (e) => {
+                e.preventDefault();
+                if(loginUser === 'bishal' && loginPass === 'bishal017') {
+                    setIsAdminLoggedIn(true); setView('admin'); addToast("Welcome Admin!", "success");
+                } else {
+                    addToast("Wrong Info!", "error");
+                }
+            };
+
+            const handleSendAmountChange = (val) => {
+                setSendAmount(val);
+                if (!val || isNaN(val)) { setReceiveAmount(''); return; }
+                const baseValue = parseFloat(val) * (sendService.buy_rate || 0); 
+                let estimatedReceive = baseValue / (receiveService.sell_rate || 1);
+                if (receiveService.type !== 'currency') estimatedReceive = Math.floor(estimatedReceive); 
+                else estimatedReceive = parseFloat(estimatedReceive.toFixed(4));
+                setReceiveAmount(estimatedReceive);
+            };
+
+            const handleReceiveAmountChange = (val) => {
+                if (receiveService.type !== 'currency' && val.includes('.')) return;
+                setReceiveAmount(val);
+                if (!val || isNaN(val)) { setSendAmount(''); return; }
+                const requiredBase = parseFloat(val) * (receiveService.sell_rate || 0);
+                let requiredSend = requiredBase / (sendService.buy_rate || 1);
+                setSendAmount(parseFloat(requiredSend.toFixed(2)));
+            };
+
+            const handleSubmitOrder = async () => {
+                if(!trxInput || !userInput) { addToast("All fields required", "error"); return; }
+                
+                const newOrder = {
+                    id: Date.now().toString(), // Local ID
+                    orderId: `ORD-${Math.floor(Math.random() * 9000) + 1000}`,
+                    sendServiceId: sendService.id, receiveServiceId: receiveService.id,
+                    sendAmount: sendAmount, receiveAmount: receiveAmount,
+                    userData: userInput, trxId: trxInput, status: "pending", deliveryData: "",
+                    date: new Date().toLocaleString()
+                };
+
+                const finalizeOrder = () => {
+                     setView('dashboard'); setUserInput(''); setTrxInput(''); setSendAmount(''); setReceiveAmount(''); setExchangeStep(1);
+                };
+
+                // TRY FIREBASE
+                if (!isLocalMode && user && fbDb) {
+                    try {
+                        const { addDoc, collection } = window.firebaseModules;
+                        await addDoc(collection(fbDb, 'artifacts', appId, 'public', 'data', 'orders'), newOrder);
+                        addToast("Order Placed!", "success");
+                        finalizeOrder();
+                        return;
+                    } catch(e) {
+                        console.warn("Firebase Write Failed, switching to local:", e);
+                        setIsLocalMode(true);
+                    }
+                }
+
+                // LOCAL FALLBACK
+                const currentOrders = loadLocalOrders();
+                const updatedOrders = [newOrder, ...currentOrders];
+                localStorage.setItem('local_orders_v2', JSON.stringify(updatedOrders));
+                setOrders(updatedOrders);
+                addToast("Order Placed Successfully!", "success");
+                finalizeOrder();
+            };
+
+            const handleNextStep = () => {
+                if(!sendAmount || !userInput) { addToast("Fill all fields", "error"); return; }
+                if(!sendService.id) { addToast("Service loading... please wait", "error"); return; }
+                
+                if(parseFloat(sendAmount) < sendService.min_limit) {
+                    addToast(`Minimum limit is ${sendService.min_limit} ${sendService.unit_name}`, "error");
+                    return;
+                }
+                if(parseFloat(sendAmount) > sendService.max_limit) {
+                    addToast(`Maximum limit is ${sendService.max_limit} ${sendService.unit_name}`, "error");
+                    return;
+                }
+                
+                const isBinanceReceive = receiveService.name?.toLowerCase().includes('binance') || receiveService.name?.toLowerCase().includes('usdt');
+                const valueInBDT = parseFloat(receiveAmount) * receiveService.sell_rate;
+                if (isBinanceReceive && valueInBDT < 1000) {
+                    addToast(t.binance_warning, "warning");
+                    return;
+                }
+
+                setExchangeStep(2);
+            };
+
+            // ADD / UPDATE METHOD
+            const handleAddService = async (e) => {
+                e.preventDefault();
+                const fd = new FormData(e.target);
+                const methodData = {
+                    name: fd.get('name'), type: fd.get('type'), unit_name: fd.get('unit'),
+                    buy_rate: parseFloat(fd.get('rate')), sell_rate: parseFloat(fd.get('rate')) * 1.1,
+                    reserve: 0, 
+                    min_limit: parseFloat(fd.get('min')), 
+                    max_limit: parseFloat(fd.get('max')),
+                    user_input_label: fd.get('label'), payment_details: fd.get('payment'), color: "bg-slate-500"
+                };
+
+                const finalizeMethod = (newMethod) => {
+                     setShowAddMethodForm(false);
+                     setEditingMethod(null);
+                }
+
+                // TRY FIREBASE
+                if (!isLocalMode && user && fbDb) {
+                    try {
+                        const { doc, updateDoc, addDoc, collection } = window.firebaseModules;
+                        if (editingMethod) {
+                            const docRef = doc(fbDb, 'artifacts', appId, 'public', 'data', 'methods', editingMethod.id);
+                            await updateDoc(docRef, methodData);
+                        } else {
+                            await addDoc(collection(fbDb, 'artifacts', appId, 'public', 'data', 'methods'), methodData);
+                        }
+                        addToast("Method Saved!", "success");
+                        finalizeMethod();
+                        return;
+                    } catch(e) {
+                         console.warn("Firebase Write Failed, switching to local:", e);
+                         setIsLocalMode(true);
+                    }
+                }
+
+                // LOCAL FALLBACK
+                const currentMethods = loadLocalMethods();
+                let updatedMethods;
+                if (editingMethod) {
+                    updatedMethods = currentMethods.map(m => m.id === editingMethod.id ? { ...m, ...methodData } : m);
+                } else {
+                    methodData.id = Date.now().toString();
+                    updatedMethods = [...currentMethods, methodData];
+                }
+                localStorage.setItem('local_methods_v2', JSON.stringify(updatedMethods));
+                setServices(updatedMethods);
+                addToast("Method Saved Successfully!", "success");
+                finalizeMethod();
+            };
+            
+            const handleResetDefaults = async () => {
+                // LOCAL ONLY FOR SAFETY IN DEMO
+                localStorage.setItem('local_methods_v2', JSON.stringify(defaultServices));
+                setServices(defaultServices);
+                setIsLocalMode(true); // Force local to avoid sync mixup
+                addToast("Defaults Restored!", "success");
+            };
+
+            const startEditMethod = (method) => {
+                setEditingMethod(method);
+                setShowAddMethodForm(true);
+            };
+
+            const handleOrderAction = async (id, action, data = null) => {
+                // TRY FIREBASE
+                 if (!isLocalMode && user && fbDb) {
+                    try {
+                        const { doc, updateDoc } = window.firebaseModules;
+                        const docRef = doc(fbDb, 'artifacts', appId, 'public', 'data', 'orders', id);
+                        if (action === 'deliver') await updateDoc(docRef, { status: 'completed', deliveryData: data });
+                        if (action === 'cancel') await updateDoc(docRef, { status: 'cancelled' });
+                        if (action === 'update_send') await updateDoc(docRef, { sendAmount: data });
+                        if (action === 'update_receive') await updateDoc(docRef, { receiveAmount: data });
+                        
+                        if(action === 'deliver' || action === 'cancel') addToast(`Order ${action}ed!`, action === 'cancel' ? 'error' : 'success');
+                        return;
+                    } catch(e) {
+                        console.warn("Update failed, switching local", e);
+                        setIsLocalMode(true);
+                    }
+                 }
+
+                 // LOCAL FALLBACK
+                 const currentOrders = loadLocalOrders();
+                 const updatedOrders = currentOrders.map(o => {
+                     if (o.id !== id) return o;
+                     let updates = {};
+                     if (action === 'deliver') updates = { status: 'completed', deliveryData: data };
+                     if (action === 'cancel') updates = { status: 'cancelled' };
+                     if (action === 'update_send') updates = { sendAmount: data };
+                     if (action === 'update_receive') updates = { receiveAmount: data };
+                     return { ...o, ...updates };
+                 });
+                 localStorage.setItem('local_orders_v2', JSON.stringify(updatedOrders));
+                 setOrders(updatedOrders);
+                 addToast("Updated Successfully!", "success");
+            };
+            
+            const handleSaveNotice = async () => {
+                 // Try firebase
+                 if (!isLocalMode && user && fbDb) {
+                     try {
+                         const { doc, setDoc } = window.firebaseModules;
+                         await setDoc(doc(fbDb, 'artifacts', appId, 'public', 'data', 'settings', 'global'), { notice });
+                         addToast("Notice saved!", "success");
+                         return;
+                     } catch(e) {}
+                 }
+                 addToast("Notice saved locally (Session only)", "warning");
+            }
+
+            const deleteMethod = async (id) => {
+                if(!confirm('Delete?')) return;
+                
+                if (!isLocalMode && user && fbDb) {
+                    try {
+                        const { doc, deleteDoc } = window.firebaseModules;
+                        await deleteDoc(doc(fbDb, 'artifacts', appId, 'public', 'data', 'methods', id));
+                        addToast("Method deleted", "success");
+                        return;
+                    } catch(e) { setIsLocalMode(true); }
+                }
+
+                const currentMethods = loadLocalMethods().filter(m => m.id !== id);
+                localStorage.setItem('local_methods_v2', JSON.stringify(currentMethods));
+                setServices(currentMethods);
+                addToast("Deleted Successfully!", "success");
+            }
+
+            const openWhatsApp = () => window.open(`https://wa.me/${adminWhatsApp}`, '_blank');
+            
+            if(loading) return <div className="loading"><div>Loading Fast Sell...</div><div style={{fontSize: 12, opacity: 0.7}}>Connecting to database...</div></div>;
+
+            return (
+                <div className={`min-h-screen transition-colors duration-300 font-sans ${darkMode ? 'bg-slate-900 text-slate-100' : 'bg-slate-50 text-slate-800'}`}>
+                    
+                    {/* Toasts */}
+                    <div className="z-[100] fixed top-4 right-4 space-y-2">
+                        {toasts.map(t => (
+                            <div key={t.id} className={`flex items-center gap-2 px-4 py-3 rounded-lg shadow-xl animate-fade-in ${t.type === 'success' ? 'bg-green-600 text-white' : t.type === 'error' ? 'bg-red-600 text-white' : 'bg-yellow-500 text-white'}`}>
+                                <span>{t.msg}</span>
+                                <button onClick={() => removeToast(t.id)}><X size={14}/></button>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Navbar */}
+                    <nav className={`sticky top-0 z-50 backdrop-blur-md border-b ${darkMode ? 'bg-slate-900/80 border-slate-700' : 'bg-white/80 border-slate-200'}`}>
+                        <div className="max-w-6xl mx-auto px-4 h-16 flex justify-between items-center">
+                            <div className="flex items-center gap-2 cursor-pointer" onClick={() => setView('home')}>
+                                <div className="bg-indigo-600 text-white p-2 rounded-lg"><ArrowRightLeft size={20}/></div>
+                                <div>
+                                    <h1 className="font-black text-xl leading-none">Fast Sell</h1>
+                                    <div className="flex items-center gap-1">
+                                        <p className="text-[10px] opacity-60">Trusted Exchange</p>
+                                        <span className={`w-2 h-2 rounded-full ${isLocalMode ? 'bg-red-500' : 'bg-green-500'}`} title={isLocalMode ? 'Local Mode' : 'Live Realtime'}></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="hidden md:flex gap-2">
+                                <button onClick={() => setView('home')} className={`px-4 py-2 rounded-lg text-sm font-bold ${view==='home'?'bg-indigo-600 text-white':'hover:bg-slate-200 text-slate-600'}`}>{t.nav_home}</button>
+                                <button onClick={() => setView('dashboard')} className={`px-4 py-2 rounded-lg text-sm font-bold ${view==='dashboard'?'bg-indigo-600 text-white':'hover:bg-slate-200 text-slate-600'}`}>{t.nav_track}</button>
+                                <button onClick={() => setView(isAdminLoggedIn ? 'admin' : 'login')} className={`px-4 py-2 rounded-lg text-sm font-bold ${view==='admin'?'bg-indigo-600 text-white':'hover:bg-slate-200 text-slate-600'}`}>{isAdminLoggedIn ? 'Admin' : t.nav_admin}</button>
+                            </div>
+                            <div className="flex gap-2 items-center">
+                                <button onClick={toggleLang} className="p-2 border rounded-lg text-xs font-bold">{lang === 'bn' ? 'EN' : 'BN'}</button>
+                                <button onClick={toggleTheme} className="p-2 rounded-lg bg-slate-200 dark:bg-slate-700">{darkMode ? <Sun size={16}/> : <Moon size={16}/>}</button>
+                                <button className="md:hidden p-2" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}><Menu size={20}/></button>
+                            </div>
+                        </div>
+                        {mobileMenuOpen && (
+                            <div className="md:hidden p-4 border-t space-y-2 bg-white dark:bg-slate-800">
+                                <button onClick={()=>{setView('home');setMobileMenuOpen(false)}} className="block w-full text-left p-2 font-bold">{t.nav_home}</button>
+                                <button onClick={()=>{setView('dashboard');setMobileMenuOpen(false)}} className="block w-full text-left p-2 font-bold">{t.nav_track}</button>
+                                <button onClick={()=>{setView(isAdminLoggedIn?'admin':'login');setMobileMenuOpen(false)}} className="block w-full text-left p-2 font-bold">{t.nav_admin}</button>
+                            </div>
+                        )}
+                    </nav>
+
+                    {/* Notice */}
+                    <div className="bg-indigo-50 dark:bg-slate-800 border-b border-indigo-100 dark:border-slate-700 py-2 overflow-hidden">
+                        <div className="whitespace-nowrap animate-marquee text-sm font-medium text-indigo-600 dark:text-indigo-400 flex gap-8">
+                            <span>📢 {notice}</span>
+                            {services.map(s => <span key={s.id}>{s.name}: {s.reserve} {s.unit_name}</span>)}
+                        </div>
+                    </div>
+
+                    <main className="max-w-6xl mx-auto px-4 py-8">
+                        {/* HOME */}
+                        {view === 'home' && (
+                            <div className="grid lg:grid-cols-12 gap-8">
+                                <div className="lg:col-span-7 space-y-6">
+                                    <div className={`rounded-3xl shadow-xl border overflow-hidden ${darkMode?'bg-slate-800 border-slate-700':'bg-white border-slate-100'}`}>
+                                        <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-6 text-white">
+                                            <h2 className="text-2xl font-black">{t.hero_title}</h2>
+                                            <p className="text-indigo-200 text-sm">{t.hero_subtitle}</p>
+                                        </div>
+                                        <div className="p-6 space-y-6">
+                                            {exchangeStep === 1 ? (
+                                                <div className="space-y-4 animate-fade-in">
+                                                    <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
+                                                        <div className="flex justify-between text-xs font-bold uppercase text-slate-500 mb-2">
+                                                            <span>{t.send}</span>
+                                                            <span className="text-indigo-600">Min: {sendService.min_limit} | Max: {sendService.max_limit}</span>
+                                                        </div>
+                                                        <div className="flex gap-2">
+                                                            <select className="bg-transparent font-bold w-1/3 outline-none" value={sendId} onChange={e=>{setSendId(e.target.value);setSendAmount('');setReceiveAmount('')}}>{services.map(s=><option key={s.id} value={s.id}>{s.name}</option>)}</select>
+                                                            <input type="number" placeholder="0.00" className="w-2/3 bg-transparent text-right font-mono text-xl outline-none" value={sendAmount} onChange={e=>handleSendAmountChange(e.target.value)}/>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex justify-center -my-6 relative z-10"><div className="bg-indigo-600 text-white p-2 rounded-full border-4 border-white dark:border-slate-800"><ArrowRightLeft size={16}/></div></div>
+                                                    <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
+                                                        <div className="flex justify-between text-xs font-bold uppercase text-slate-500 mb-2"><span>{t.receive}</span><span>Reserve: {receiveService.reserve}</span></div>
+                                                        <div className="flex gap-2">
+                                                            <select className="bg-transparent font-bold w-1/3 outline-none" value={receiveId} onChange={e=>{setReceiveId(e.target.value);setSendAmount('');setReceiveAmount('')}}>{services.map(s=><option key={s.id} value={s.id}>{s.name}</option>)}</select>
+                                                            <input type="number" placeholder="0.00" className="w-2/3 bg-transparent text-right font-mono text-xl outline-none" value={receiveAmount} onChange={e=>handleReceiveAmountChange(e.target.value)}/>
+                                                        </div>
+                                                    </div>
+                                                    <div className="p-4 rounded-xl border border-indigo-200 bg-indigo-50 dark:bg-indigo-900/20">
+                                                        <label className="block text-xs font-bold text-indigo-600 mb-1">{receiveService.user_input_label} *</label>
+                                                        <input type="text" className="w-full bg-transparent outline-none font-medium" placeholder={receiveService.type === 'account' ? 'Your Telegram User ID/Link' : 'e.g. 017...'} value={userInput} onChange={e=>setUserInput(e.target.value)}/>
+                                                    </div>
+                                                    <button onClick={handleNextStep} className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-xl shadow-lg transition">{t.exchange_btn}</button>
+                                                </div>
+                                            ) : (
+                                                <div className="space-y-4 animate-fade-in">
+                                                    <div className={`bg-yellow-50 border border-yellow-200 p-4 rounded-xl text-yellow-800 ${sendService.type !== 'currency' ? 'bg-blue-50 border-blue-200 text-blue-800' : ''}`}>
+                                                        <h4 className="font-bold flex gap-2 items-center mb-2">
+                                                            {sendService.type === 'currency' ? <Wallet size={16}/> : <FileText size={16}/>} 
+                                                            {sendService.type === 'currency' ? t.pay_instruction_money : t.pay_instruction_account}
+                                                        </h4>
+                                                        <div className="bg-white p-2 rounded border border-yellow-100 font-mono text-sm flex justify-between items-center">
+                                                            <span>{sendService.payment_details}</span>
+                                                            <button onClick={()=>navigator.clipboard.writeText(sendService.payment_details)}><Copy size={14}/></button>
+                                                        </div>
+                                                        <p className="text-xs mt-2">
+                                                            {sendService.type === 'currency' 
+                                                                ? <span>Send exactly <b>{sendAmount} {sendService.unit_name}</b> here.</span>
+                                                                : <span>Send <b>{sendAmount} Stars/Items</b> to this ID.</span>
+                                                            }
+                                                        </p>
+                                                    </div>
+                                                    <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-700">
+                                                        <label className="block text-xs font-bold text-slate-500 mb-1">
+                                                            {sendService.type === 'currency' ? t.trx_label_money : t.trx_label_account} *
+                                                        </label>
+                                                        <input type="text" className="w-full bg-transparent outline-none" placeholder={sendService.type === 'currency' ? "e.g. 8HG7..." : "e.g. My ID is @user123"} value={trxInput} onChange={e=>setTrxInput(e.target.value)}/>
+                                                    </div>
+                                                    <div className="flex gap-3">
+                                                        <button onClick={()=>setExchangeStep(1)} className="w-1/3 bg-slate-200 text-slate-700 font-bold py-3 rounded-xl">Back</button>
+                                                        <button onClick={handleSubmitOrder} className="w-2/3 bg-green-600 text-white font-bold py-3 rounded-xl shadow-lg">{t.confirm_btn}</button>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="lg:col-span-5 space-y-6">
+                                    <div className={`p-6 rounded-3xl border shadow-sm ${darkMode?'bg-slate-800 border-slate-700':'bg-white border-slate-100'}`}>
+                                        <h3 className="font-bold mb-4 flex items-center gap-2"><Package size={18}/> {t.rate_title}</h3>
+                                        <div className="space-y-2">
+                                            {services.map(s => (
+                                                <div key={s.id} className="flex justify-between items-center p-3 rounded-lg bg-slate-50 dark:bg-slate-700/50">
+                                                    <div className="flex items-center gap-2">
+                                                        <div className={`w-2 h-8 rounded-full ${s.color}`}></div>
+                                                        <span className="font-medium text-sm">{s.name}</span>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <div className="font-bold text-sm">{s.sell_rate} ৳</div>
+                                                        <div className="text-[10px] opacity-60">Stock: {s.reserve}</div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <div className="bg-indigo-600 text-white p-6 rounded-3xl shadow-lg text-center">
+                                        <h4 className="font-bold mb-2">Need Support?</h4>
+                                        <button onClick={openWhatsApp} className="bg-white text-indigo-600 px-6 py-2 rounded-full font-bold text-sm flex items-center gap-2 mx-auto"><MessageCircle size={16}/> WhatsApp Admin</button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* DASHBOARD */}
+                        {view === 'dashboard' && (
+                            <div className={`rounded-3xl shadow-lg border overflow-hidden min-h-[60vh] ${darkMode?'bg-slate-800 border-slate-700':'bg-white border-slate-100'}`}>
+                                <div className="p-6 bg-slate-100 dark:bg-slate-900 border-b dark:border-slate-700"><h2 className="font-bold text-xl">{t.dashboard_title}</h2></div>
+                                <div className="p-6 space-y-4">
+                                    {orders.length === 0 ? <p className="text-center opacity-50">No orders yet.</p> : orders.map(o => (
+                                        <div key={o.id} className="p-4 border rounded-xl hover:shadow-md transition dark:border-slate-700">
+                                            <div className="flex justify-between mb-2">
+                                                <span className="text-xs font-bold bg-slate-200 dark:bg-slate-700 px-2 py-1 rounded">{o.orderId}</span>
+                                                <span className={`text-xs font-bold px-2 py-1 rounded uppercase ${o.status==='completed'?'bg-green-100 text-green-700':o.status==='cancelled'?'bg-red-100 text-red-700':'bg-orange-100 text-orange-700'}`}>{o.status}</span>
+                                            </div>
+                                            <div className="font-bold flex items-center gap-2 text-sm">
+                                                <span className="text-red-500">{o.sendAmount} {services.find(s=>s.id===o.sendServiceId)?.unit_name}</span>
+                                                <ArrowRight size={14} className="opacity-50"/>
+                                                <span className="text-green-500">{o.receiveAmount} {services.find(s=>s.id===o.receiveServiceId)?.unit_name}</span>
+                                            </div>
+                                            {o.deliveryData && <div className="mt-2 bg-green-50 p-2 rounded text-xs text-green-800 font-mono border border-green-200">Received: {o.deliveryData}</div>}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* ADMIN */}
+                        {view === 'admin' && isAdminLoggedIn && (
+                            <div className="grid md:grid-cols-4 gap-6 animate-fade-in">
+                                <div className={`md:col-span-1 rounded-2xl p-4 h-fit border shadow-sm ${darkMode?'bg-slate-800 border-slate-700':'bg-white border-slate-200'}`}>
+                                    <div className="space-y-1">
+                                        {['dashboard','orders','methods','settings'].map(tab => (
+                                            <button key={tab} onClick={()=>setAdminTab(tab)} className={`w-full text-left px-4 py-3 rounded-xl text-sm font-bold capitalize ${adminTab===tab?'bg-indigo-600 text-white':'hover:bg-slate-100 dark:hover:bg-slate-700'}`}>{translations.en[`admin_${tab}`]}</button>
+                                        ))}
+                                        <button onClick={()=>{setIsAdminLoggedIn(false);setView('home')}} className="w-full text-left px-4 py-3 rounded-xl text-sm font-bold text-red-500 hover:bg-red-50 mt-4">Logout</button>
+                                    </div>
+                                </div>
+                                <div className="md:col-span-3 space-y-6">
+                                    {adminTab === 'dashboard' && (
+                                        <div className="grid grid-cols-3 gap-4">
+                                            {[{l:'Total',v:orders.length,c:'bg-blue-500'},{l:'Pending',v:orders.filter(o=>o.status==='pending').length,c:'bg-orange-500'},{l:'Done',v:orders.filter(o=>o.status==='completed').length,c:'bg-green-500'}].map((s,i)=>(
+                                                <div key={i} className={`${s.c} text-white p-6 rounded-2xl shadow-lg`}>
+                                                    <div className="text-xs opacity-80 uppercase">{s.l}</div>
+                                                    <div className="text-3xl font-black">{s.v}</div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                    {adminTab === 'orders' && (
+                                        <div className="space-y-4">
+                                            {orders.map(o => (
+                                                <div key={o.id} className={`p-4 rounded-xl border relative bg-white dark:bg-slate-800 ${o.status==='pending'?'border-orange-400':'dark:border-slate-700'}`}>
+                                                    <div className="flex justify-between items-start mb-3">
+                                                        <div><span className="font-bold text-sm text-indigo-600">#{o.orderId}</span> <span className="text-xs opacity-50">{o.date}</span></div>
+                                                        <div className="flex gap-2">
+                                                            {o.status==='pending' && <button onClick={()=>handleOrderAction(o.id,'cancel')} className="bg-red-100 text-red-600 px-2 py-1 rounded text-xs font-bold">Cancel</button>}
+                                                            <span className="text-xs font-bold bg-slate-100 px-2 py-1 rounded uppercase">{o.status}</span>
+                                                        </div>
+                                                    </div>
+                                                    <div className="grid grid-cols-2 gap-4 text-sm mb-3">
+                                                        <div>
+                                                            <label className="text-[10px] font-bold opacity-50 block">USER SENT</label>
+                                                            {o.status==='pending' ? <input type="number" className="font-bold text-red-500 w-full bg-transparent border-b outline-none" value={o.sendAmount} onChange={e=>handleOrderAction(o.id,'update_send',e.target.value)}/> : <span className="font-bold text-red-500">{o.sendAmount}</span>}
+                                                            <span className="text-xs ml-1">{services.find(s=>s.id===o.sendServiceId)?.name}</span>
+                                                        </div>
+                                                        <div className="text-right">
+                                                            <label className="text-[10px] font-bold opacity-50 block">USER GETS</label>
+                                                            {o.status==='pending' ? <input type="number" className="font-bold text-green-500 w-full bg-transparent border-b outline-none text-right" value={o.receiveAmount} onChange={e=>handleOrderAction(o.id,'update_receive',e.target.value)}/> : <span className="font-bold text-green-500">{o.receiveAmount}</span>}
+                                                            <span className="text-xs ml-1">{services.find(s=>s.id===o.receiveServiceId)?.name}</span>
+                                                        </div>
+                                                    </div>
+                                                    <div className="bg-slate-50 dark:bg-slate-900 p-2 rounded text-xs mb-2">
+                                                        <div><b>User Addr (Send To):</b> {o.userData}</div>
+                                                        <div><b>User Proof (Sent From):</b> {o.trxId}</div>
+                                                    </div>
+                                                    {o.status === 'pending' && (
+                                                        <div className="flex gap-2">
+                                                            <input id={`d-${o.id}`} type="text" placeholder="Delivery Data (Secret)" className="flex-1 border p-2 rounded text-xs outline-none"/>
+                                                            <button onClick={()=>{const d=document.getElementById(`d-${o.id}`).value; if(d) handleOrderAction(o.id,'deliver',d)}} className="bg-green-600 text-white px-4 py-2 rounded text-xs font-bold">Approve</button>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                    {adminTab === 'methods' && (
+                                        <div className="space-y-4">
+                                            <div className="flex justify-end mb-2">
+                                                 <button onClick={handleResetDefaults} className="text-xs text-orange-500 underline">Reset Defaults</button>
+                                            </div>
+                                            {services.map(s => (
+                                                <div key={s.id} className="p-4 border rounded-xl bg-white dark:bg-slate-800 dark:border-slate-700">
+                                                    <div className="flex justify-between items-center mb-1">
+                                                        <div className="font-bold">{s.name} <span className="text-xs opacity-60">({s.type})</span></div>
+                                                        <div className="flex gap-2">
+                                                            <button onClick={() => startEditMethod(s)} className="text-blue-500 hover:text-blue-700"><Edit size={16}/></button>
+                                                            <button onClick={()=>{deleteMethod(s.id)}} className="text-red-500 hover:text-red-700"><Trash2 size={16}/></button>
+                                                        </div>
+                                                    </div>
+                                                    <div className="text-xs opacity-60 grid grid-cols-2 gap-2">
+                                                        <div>Buy: {s.buy_rate} | Sell: {s.sell_rate}</div>
+                                                        <div>Limit: {s.min_limit} - {s.max_limit}</div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                            <div className="border-2 border-dashed p-4 rounded-xl text-center cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800" onClick={()=>{setEditingMethod(null); setShowAddMethodForm(!showAddMethodForm)}}>
+                                                <span className="font-bold text-indigo-500">+ Add Method</span>
+                                            </div>
+                                            {showAddMethodForm && (
+                                                <form onSubmit={handleAddService} className="p-4 border rounded-xl space-y-3 bg-white dark:bg-slate-800">
+                                                    <h4 className="font-bold text-sm text-indigo-600">{editingMethod ? 'Update Method' : 'New Method'}</h4>
+                                                    <input name="name" defaultValue={editingMethod?.name} placeholder="Name" required className="w-full p-2 border rounded text-sm"/>
+                                                    <div className="grid grid-cols-2 gap-2">
+                                                        <select name="type" defaultValue={editingMethod?.type} className="p-2 border rounded text-sm"><option value="currency">Currency</option><option value="account">Account</option></select>
+                                                        <input name="unit" defaultValue={editingMethod?.unit_name} placeholder="Unit" required className="p-2 border rounded text-sm"/>
+                                                    </div>
+                                                    <input name="rate" defaultValue={editingMethod?.buy_rate} type="number" placeholder="Rate" required className="w-full p-2 border rounded text-sm"/>
+                                                    
+                                                    <div className="grid grid-cols-2 gap-2">
+                                                        <input name="min" defaultValue={editingMethod?.min_limit} type="number" placeholder="Min Limit" required className="p-2 border rounded text-sm"/>
+                                                        <input name="max" defaultValue={editingMethod?.max_limit} type="number" placeholder="Max Limit" required className="p-2 border rounded text-sm"/>
+                                                    </div>
+
+                                                    <input name="label" defaultValue={editingMethod?.user_input_label} placeholder="User Input Label (Destination)" required className="w-full p-2 border rounded text-sm"/>
+                                                    <input name="payment" defaultValue={editingMethod?.payment_details} placeholder="Payment/Account Details (Source)" required className="w-full p-2 border rounded text-sm"/>
+                                                    
+                                                    <div className="flex gap-2">
+                                                        <button type="button" onClick={()=>{setShowAddMethodForm(false); setEditingMethod(null)}} className="flex-1 bg-gray-300 text-gray-800 py-2 rounded text-sm font-bold">Cancel</button>
+                                                        <button type="submit" className="flex-1 bg-green-600 text-white py-2 rounded text-sm font-bold">{editingMethod ? 'Update' : 'Save'}</button>
+                                                    </div>
+                                                </form>
+                                            )}
+                                        </div>
+                                    )}
+                                    {adminTab === 'settings' && (
+                                        <div className="p-6 border rounded-xl bg-white dark:bg-slate-800 dark:border-slate-700">
+                                            <h3 className="font-bold mb-2">Website Notice</h3>
+                                            <textarea className="w-full p-3 border rounded-lg text-sm mb-3 h-24 outline-none dark:bg-slate-900" value={notice} onChange={e=>setNotice(e.target.value)}></textarea>
+                                            <button onClick={handleSaveNotice} className="bg-indigo-600 text-white px-6 py-2 rounded-lg font-bold text-sm">Save Notice</button>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* ADMIN LOGIN */}
+                        {view === 'login' && (
+                            <div className="max-w-md mx-auto mt-20 p-8 rounded-3xl shadow-2xl border dark:border-slate-700 bg-white dark:bg-slate-800 text-center">
+                                <h2 className="text-2xl font-black mb-6">Admin Access</h2>
+                                <form onSubmit={handleAdminLogin} className="space-y-4">
+                                    <input type="text" placeholder="Username" className="w-full p-3 rounded-xl border outline-none" value={loginUser} onChange={e=>setLoginUser(e.target.value)}/>
+                                    <input type="password" placeholder="Password" className="w-full p-3 rounded-xl border outline-none" value={loginPass} onChange={e=>setLoginPass(e.target.value)}/>
+                                    <button className="w-full bg-indigo-600 text-white py-3 rounded-xl font-bold">Login Dashboard</button>
+                                </form>
+                            </div>
+                        )}
+                    </main>
+
+                    <footer className="text-center py-8 text-xs opacity-50">&copy; 2024 Fast Sell Exchange</footer>
+                </div>
+            );
+        }
+
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
+</body> 
+</html>
+
 
